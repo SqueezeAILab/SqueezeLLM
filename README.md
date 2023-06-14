@@ -46,17 +46,17 @@ Below are the links to download the models.
 | LLaMA-7B    | 4   | [sq-llama-7b-w4-o0](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w4-o0/blob/main/sq-llama-7b-w4-o0.pt) |
 | LLaMA-13B    | 3   |  [sq-llama-13b-w3-o0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w3-o0/blob/main/sq-llama-13b-w3-o0.pt) |
 | LLaMA-13B    | 4   | [sq-llama-13b-w4-o0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-o0/blob/main/sq-llama-13b-w4-o0.pt) |
-| LLaMA-30B    | 3   |  [sq-llama-30b-w3-o0]() |
-| LLaMA-30B    | 4   | [sq-llama-30b-w4-o0]() |
+| LLaMA-30B    | 3   |  sq-llama-30b-w3-o0 (coming soon) |
+| LLaMA-30B    | 4   | sq-llama-30b-w4-o0 (coming soon) |
 
 ### Vicuna
 
 | Model |  Bitwidth | Dense-only (0%) |
 | -------- | -------- | -------- |
-| Vicuna-7B    | 3   | [Link]() |
-| Vicuna-7B    | 4     | [Link]() |
-| Vicuna-13B    | 3     | [Link]() |
-| Vicuna-13B    | 4    | [Link]() |
+| Vicuna-7B    | 3   | sq-vicuna-7b-w3-o0 (coming soon) |
+| Vicuna-7B    | 4     | sq-vicuna-7b-w4-o0 (coming soon) |
+| Vicuna-13B    | 3     | sq-vicuna-13b-w3-o0 (coming soon) |
+| Vicuna-13B    | 4    | sq-vicuna-13b-w4-o0 (coming soon) |
 
 **NOTE:** Sparsity levels with 0.05% and 0.45% are coming soon!
 
