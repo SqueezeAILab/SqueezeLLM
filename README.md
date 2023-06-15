@@ -55,10 +55,10 @@ Below are the links to download the models.
 
 | Model |  Bitwidth | Dense-only (0%) |
 | -------- | -------- | -------- |
-| Vicuna-7B    | 3   | sq-vicuna-7b-w3-s0 (coming soon) |
-| Vicuna-7B    | 4     | sq-vicuna-7b-w4-s0 (coming soon) |
-| Vicuna-13B    | 3     | sq-vicuna-13b-w3-s0 (coming soon) |
-| Vicuna-13B    | 4    | sq-vicuna-13b-w4-s0 (coming soon) |
+| Vicuna-7B    | 3   | [sq-vicuna-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-7b-w3-s0/blob/main/sq-vicuna-7b-w3-s0.pt) |
+| Vicuna-7B    | 4     | [sq-vicuna-7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-7b-w4-s0/blob/main/sq-vicuna-7b-w4-s0.pt)  |
+| Vicuna-13B    | 3     | [sq-vicuna-13b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w3-s0/blob/main/sq-vicuna-13b-w3-s0.pt)  |
+| Vicuna-13B    | 4    | [sq-vicuna-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w4-s0/blob/main/sq-vicuna-13b-w4-s0.pt)  |
 
 **NOTE:** Sparsity levels with 0.05% and 0.45% are coming soon!
 
