@@ -75,7 +75,7 @@ Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt`) locally from the link
 You can follow the same procedure for other quantized models.
 
 ```
-CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 4 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check
 ```
 
 ### Perplexity Evaluation
@@ -84,7 +84,7 @@ The following code will evaluate perplexity using the 3-bit quantized LLaMA-7B m
 Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt`) locally from the link above.
 You can follow the same procedure for other quantized models.
 ```
-CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 4 --load sq-llama-7b-w3-s0.pt --eval
+CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --eval
 ```
 
 The code was tested on A5000 and A6000 GPUs with Cuda 11.3 and CUDNN 8.2.
