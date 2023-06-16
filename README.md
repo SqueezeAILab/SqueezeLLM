@@ -13,6 +13,8 @@ For instance, the Squeeze variant of the Vicuna models can be served within 6 GB
 For more details please check out our [paper](https://arxiv.org/abs/2306.07629).
 
 
+**Updates:** Vicuna-7B and 13B, and LLaMA-30B are all supported with both 3-bit and 4-bit. 
+
 ---
 ## Installation
 
@@ -48,8 +50,8 @@ Below are the links to download the models.
 | LLaMA-7B    | 4   | [sq-llama-7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w4-s0/blob/main/sq-llama-7b-w4-s0.pt) |
 | LLaMA-13B    | 3   |  [sq-llama-13b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w3-s0/blob/main/sq-llama-13b-w3-s0.pt) |
 | LLaMA-13B    | 4   | [sq-llama-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s0/blob/main/sq-llama-13b-w4-s0.pt) |
-| LLaMA-30B    | 3   |  sq-llama-30b-w3-s0 (coming soon) |
-| LLaMA-30B    | 4   | sq-llama-30b-w4-s0 (coming soon) |
+| LLaMA-30B    | 3   |  [sq-llama-30b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s0/blob/main/sq-llama-30b-w3-s0.pt) |
+| LLaMA-30B    | 4   | [sq-llama-30b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s0/blob/main/sq-llama-30b-w4-s0.pt) |
 
 ### Vicuna
 
