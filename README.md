@@ -49,12 +49,13 @@ Below are the links to download the models.
 | Model |  Bitwidth | Dense-only (0%) | 0.05% Sparsity | 0.45% sparsity |
 | -------- | -------- | -------- | ------ | ---- |
 | LLaMA-7B    | 3   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w3-s0/blob/main/sq-llama-7b-w3-s0.pt) | [sq-llama-7b-w3-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w3-s5/blob/main/sq-llama-7b-w3-s5.pt) | [sq-llama-7b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w3-s45/blob/main/sq-llama-7b-w3-s45.pt) | 
-| LLaMA-7B    | 4   | [sq-llama-7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w4-s0/blob/main/sq-llama-7b-w4-s0.pt) | Coming soon | Coming soon |
+| LLaMA-7B    | 4   | [sq-llama-7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w4-s0/blob/main/sq-llama-7b-w4-s0.pt) | [sq-llama-7b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w4-s5/blob/main/sq-llama-7b-w4-s5.pt) | [sq-llama-7b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-7b-w4-s45/blob/main/sq-llama-7b-w4-s45.pt) |
 | LLaMA-13B    | 3   |  [sq-llama-13b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w3-s0/blob/main/sq-llama-13b-w3-s0.pt) | [sq-llama-13b-w3-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w3-s5/blob/main/sq-llama-13b-w3-s5.pt) | [sq-llama-13b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w3-s45/blob/main/sq-llama-13b-w3-s45.pt) | 
-| LLaMA-13B    | 4   | [sq-llama-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s0/blob/main/sq-llama-13b-w4-s0.pt) | Coming soon | Coming soon |
+| LLaMA-13B    | 4   | [sq-llama-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s0/blob/main/sq-llama-13b-w4-s0.pt) | [sq-llama-13b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s5/blob/main/sq-llama-13b-w4-s5.pt) | [sq-llama-13b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s45/blob/main/sq-llama-13b-w4-s45.pt) |
 | LLaMA-30B    | 3   |  [sq-llama-30b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s0/blob/main/sq-llama-30b-w3-s0.pt) | Coming soon | Coming soon |
 | LLaMA-30B    | 4   | [sq-llama-30b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s0/blob/main/sq-llama-30b-w4-s0.pt) | Coming soon | Coming soon |
-
+| LLaMA-65B    | 3   |  Coming soon | Coming soon | Coming soon | 
+| LLaMA-65B    | 4   |  Coming soon | Coming soon | Coming soon | 
 
 ### Vicuna
 
