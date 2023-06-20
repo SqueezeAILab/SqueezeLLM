@@ -117,19 +117,69 @@ class QuantLinearLUT(nn.Module):
             if self.bits == 3:
                 x = x.float()
                 if self.include_sparse and self.topX > 0:
-                    quant_cuda.vecquant3matmul_spmv_hybrid_nuq_perchannel_batched(self.rows, self.cols, self.vals, x, self.full_rows, self.full_row_indices, out, self.outfeatures, self.qweight, self.lookup_table)
+                    quant_cuda.vecquant3matmul_spmv_hybrid_nuq_perchannel_batched(
+                        self.rows, 
+                        self.cols, 
+                        self.vals, 
+                        x, 
+                        self.full_rows, 
+                        self.full_row_indices, 
+                        out, 
+                        self.outfeatures, 
+                        self.qweight, 
+                        self.lookup_table,
+                    )
                 elif self.include_sparse:
-                    quant_cuda.vecquant3matmul_spmv_nuq_perchannel_batched(self.rows, self.cols, self.vals, x, out, self.outfeatures, self.qweight, self.lookup_table)
+                    quant_cuda.vecquant3matmul_spmv_nuq_perchannel_batched(
+                        self.rows, 
+                        self.cols, 
+                        self.vals, 
+                        x, 
+                        out, 
+                        self.outfeatures, 
+                        self.qweight, 
+                        self.lookup_table,
+                    )
                 else:
-                    quant_cuda.vecquant3matmul_nuq_perchannel_batched(x, self.qweight, out, self.lookup_table)
+                    quant_cuda.vecquant3matmul_nuq_perchannel_batched(
+                        x, 
+                        self.qweight, 
+                        out, 
+                        self.lookup_table,
+                    )
             elif self.bits == 4:
                 x = x.float()
                 if self.include_sparse and self.topX > 0:
-                    quant_cuda.vecquant4matmul_spmv_hybrid_nuq_perchannel_batched(self.rows, self.cols, self.vals, x, self.full_rows, self.full_row_indices, out, self.outfeatures, self.qweight, self.lookup_table)
+                    quant_cuda.vecquant4matmul_spmv_hybrid_nuq_perchannel_batched(
+                        self.rows, 
+                        self.cols, 
+                        self.vals, 
+                        x, 
+                        self.full_rows, 
+                        self.full_row_indices, 
+                        out, 
+                        self.outfeatures, 
+                        self.qweight, 
+                        self.lookup_table,
+                    )
                 elif self.include_sparse:
-                    quant_cuda.vecquant4matmul_spmv_nuq_perchannel_batched(self.rows, self.cols, self.vals, x, out, self.outfeatures, self.qweight, self.lookup_table)
+                    quant_cuda.vecquant4matmul_spmv_nuq_perchannel_batched(
+                        self.rows, 
+                        self.cols, 
+                        self.vals, 
+                        x, 
+                        out, 
+                        self.outfeatures, 
+                        self.qweight, 
+                        self.lookup_table,
+                    )
                 else:
-                    quant_cuda.vecquant4matmul_nuq_perchannel_batched(x, self.qweight, out, self.lookup_table)
+                    quant_cuda.vecquant4matmul_nuq_perchannel_batched(
+                        x, 
+                        self.qweight, 
+                        out, 
+                        self.lookup_table,
+                    )
             out = out.to(dtype)
             out = out.reshape(out_shape)
             out = out + self.bias if self.bias is not None else out
