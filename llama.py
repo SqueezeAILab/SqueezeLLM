@@ -140,7 +140,14 @@ def load_quant(model, checkpoint, wbits, include_sparse, topX):
     for name in ['lm_head']:
         if name in layers:
             del layers[name]
-    make_quant_lut(model, layers, wbits, include_sparse=include_sparse, numvals=num_vals, topX=topX)
+    make_quant_lut(
+        model, 
+        layers, 
+        wbits, 
+        include_sparse=include_sparse, 
+        numvals=num_vals, 
+        topX=topX,
+    )
     del layers
 
     print('Loading model ...')
@@ -250,14 +257,13 @@ if __name__ == '__main__':
         '--torch_profile', action='store_true',
         help='Use CUDA profiling tool for timing runs.'
     )
-
     parser.add_argument(
         '--include_sparse', action='store_true',
         help='Whether loaded checkpoint has sparse matrix.'
     )
     parser.add_argument(
-        '--topX', type=int, default=10,
-        help='Threshold for hybrid kernel.'
+        '--num_dense_channels', type=int, default=10,
+        help='Number of dense channel used for hybrid kernel.'
     )
 
     DEV = torch.device('cuda:0')
@@ -268,13 +274,23 @@ if __name__ == '__main__':
         args.load = args.load.as_posix()
 
     if args.load:
-        model = load_quant(args.model, args.load, args.wbits, args.include_sparse,  args.topX)
+        model = load_quant(
+            args.model, 
+            args.load, 
+            args.wbits, 
+            args.include_sparse, 
+            args.num_dense_channels,
+        )
     else:
         model = get_llama(args.model)
         model.eval()
 
     dataloader, testloader = get_loaders(
-        args.dataset, nsamples=args.nsamples, seed=args.seed, model=args.model, seqlen=model.seqlen
+        args.dataset, 
+        nsamples=args.nsamples, 
+        seed=args.seed, 
+        model=args.model, 
+        seqlen=model.seqlen,
     )
 
     if args.benchmark:

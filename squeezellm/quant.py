@@ -49,17 +49,62 @@ class QuantLinearLUT(nn.Module):
             if self.bits == 3:
                 x = x.float()
                 if self.include_sparse and self.topX > 0:
-                    quant_cuda.vecquant3matmul_spmv_hybrid_nuq_perchannel(self.rows, self.cols, self.vals, x, self.full_rows, self.full_row_indices, y, self.outfeatures, self.qweight, self.lookup_table)
+                    quant_cuda.vecquant3matmul_spmv_hybrid_nuq_perchannel(
+                        self.rows, 
+                        self.cols, 
+                        self.vals, 
+                        x, 
+                        self.full_rows, 
+                        self.full_row_indices, 
+                        y, 
+                        self.outfeatures, 
+                        self.qweight, 
+                        self.lookup_table,
+                    )
                 elif self.include_sparse:
-                    quant_cuda.vecquant3matmul_spmv_nuq_perchannel(self.rows, self.cols, self.vals, x, y, self.outfeatures, self.qweight, self.lookup_table)
+                    quant_cuda.vecquant3matmul_spmv_nuq_perchannel(
+                        self.rows, 
+                        self.cols, 
+                        self.vals, 
+                        x, 
+                        y, 
+                        self.outfeatures, 
+                        self.qweight, 
+                        self.lookup_table,
+                    )
                 else:
-                    quant_cuda.vecquant3matmul_nuq_perchannel(x, self.qweight, y, self.lookup_table)
+                    quant_cuda.vecquant3matmul_nuq_perchannel(
+                        x, 
+                        self.qweight, 
+                        y, 
+                        self.lookup_table,
+                    )
             elif self.bits == 4:
                 x = x.float()
                 if self.include_sparse and self.topX > 0:
-                    quant_cuda.vecquant4matmul_spmv_hybrid_nuq_perchannel(self.rows, self.cols, self.vals, x, self.full_rows, self.full_row_indices, y, self.outfeatures, self.qweight, self.lookup_table)
+                    quant_cuda.vecquant4matmul_spmv_hybrid_nuq_perchannel(
+                        self.rows, 
+                        self.cols, 
+                        self.vals, 
+                        x, 
+                        self.full_rows, 
+                        self.full_row_indices, 
+                        y, 
+                        self.outfeatures, 
+                        self.qweight, 
+                        self.lookup_table,
+                    )
                 elif self.include_sparse:
-                    quant_cuda.vecquant4matmul_spmv_nuq_perchannel(self.rows, self.cols, self.vals, x, y, self.outfeatures, self.qweight, self.lookup_table)
+                    quant_cuda.vecquant4matmul_spmv_nuq_perchannel(
+                        self.rows, 
+                        self.cols, 
+                        self.vals, 
+                        x, 
+                        y, 
+                        self.outfeatures, 
+                        self.qweight, 
+                        self.lookup_table,
+                    )
                 else:
                     quant_cuda.vecquant4matmul_nuq_perchannel(x, self.qweight, y, self.lookup_table)
             y = y.to(dtype)
@@ -104,6 +149,26 @@ def make_quant_lut(module, names, bits, name='', include_sparse=False, numvals=N
             else:
                 num = 0
             delattr(module, attr)
-            setattr(module, attr, QuantLinearLUT(bits, tmp.in_features, tmp.out_features, tmp.bias is not None, include_sparse=include_sparse, numvals=num, topX=topX))
+            setattr(
+                module, 
+                attr, 
+                QuantLinearLUT(
+                    bits, 
+                    tmp.in_features, 
+                    tmp.out_features, 
+                    tmp.bias is not None, 
+                    include_sparse=include_sparse, 
+                    numvals=num, 
+                    topX=topX,
+                ),
+            )
     for name1, child in module.named_children():
-        make_quant_lut(child, names, bits, name + '.' + name1 if name != '' else name1, include_sparse=include_sparse, numvals=numvals, topX=topX)
+        make_quant_lut(
+            child, 
+            names, 
+            bits, 
+            name + '.' + name1 if name != '' else name1, 
+            include_sparse=include_sparse, 
+            numvals=numvals, 
+            topX=topX,
+        )
