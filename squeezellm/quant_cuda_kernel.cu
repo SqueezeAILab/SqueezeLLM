@@ -114,8 +114,7 @@ __global__ void DenseMatVecKernel(
     const  int* __restrict__ full_row_indices,
            float* __restrict__ mul,
     int topX,
-    int full_width,
-    int matwidth
+    int full_width
 );
 
 __global__ void DenseMatVecKernelBatched(
