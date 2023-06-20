@@ -104,17 +104,50 @@ def llama_eval(model, testenc, dev):
 
     model.config.use_cache = use_cache
 
-# function for loading packed checkpoint
-def load_quant(model, checkpoint, wbits):
-    from transformers import LlamaForCausalLM
-    model = LlamaForCausalLM.from_pretrained(model, torch_dtype='auto')
+# loading quantized checkpoint
+def load_quant(model, checkpoint, wbits, include_sparse, topX):
+    from transformers import LlamaConfig, LlamaForCausalLM
+    config = LlamaConfig.from_pretrained(model)
+    def noop(*args, **kwargs):
+        pass
+    torch.nn.init.kaiming_uniform_ = noop
+    torch.nn.init.uniform_ = noop
+    torch.nn.init.normal_ = noop
+
+    torch.set_default_dtype(torch.half)
+    transformers.modeling_utils._init_weights = False
+    torch.set_default_dtype(torch.half)
+    model = LlamaForCausalLM(config)
+    torch.set_default_dtype(torch.float)
     model = model.eval()
     layers = find_layers(model)
 
+    state_dict = torch.load(checkpoint)
+
+    #load sparse thresholds from checkpoint
+    if include_sparse:
+        num_vals = {}
+        for k,v in state_dict.items():
+            if 'sparse_threshold.' in k:
+                key = k.replace('sparse_threshold.', '')
+                num_vals[key] = v
+        for k,v in num_vals.items():
+            del state_dict['sparse_threshold.' + k]
+    else:
+        num_vals = None
+
+    #replace layers
     for name in ['lm_head']:
         if name in layers:
             del layers[name]
-    make_quant_lut(model, layers, wbits)
+    make_quant_lut(
+        model, 
+        layers, 
+        wbits, 
+        include_sparse=include_sparse, 
+        numvals=num_vals, 
+        topX=topX,
+    )
     del layers
 
     print('Loading model ...')
@@ -205,10 +238,6 @@ if __name__ == '__main__':
         help='evaluate quantized model.'
     )
     parser.add_argument(
-        '--save', type=str, default='',
-        help='Save quantized checkpoint under this name.'
-    )
-    parser.add_argument(
         '--load', type=str, default='',
         help='Load quantized model.'
     )
@@ -228,6 +257,14 @@ if __name__ == '__main__':
         '--torch_profile', action='store_true',
         help='Use CUDA profiling tool for timing runs.'
     )
+    parser.add_argument(
+        '--include_sparse', action='store_true',
+        help='Whether loaded checkpoint has sparse matrix.'
+    )
+    parser.add_argument(
+        '--num_dense_channels', type=int, default=10,
+        help='Number of dense channel used for hybrid kernel.'
+    )
 
     DEV = torch.device('cuda:0')
 
@@ -237,13 +274,23 @@ if __name__ == '__main__':
         args.load = args.load.as_posix()
 
     if args.load:
-        model = load_quant(args.model, args.load, args.wbits)
+        model = load_quant(
+            args.model, 
+            args.load, 
+            args.wbits, 
+            args.include_sparse, 
+            args.num_dense_channels,
+        )
     else:
         model = get_llama(args.model)
         model.eval()
 
     dataloader, testloader = get_loaders(
-        args.dataset, nsamples=args.nsamples, seed=args.seed, model=args.model, seqlen=model.seqlen
+        args.dataset, 
+        nsamples=args.nsamples, 
+        seed=args.seed, 
+        model=args.model, 
+        seqlen=model.seqlen,
     )
 
     if args.benchmark:
@@ -265,7 +312,7 @@ if __name__ == '__main__':
                 benchmark(model, input_ids, check=args.check)
 
     if args.eval:
-        datasets = ['wikitext2', 'ptb', 'c4']
+        datasets = ['wikitext2', 'c4']
         for dataset in datasets:
             dataloader, testloader = get_loaders(
                 dataset, seed=args.seed, model=args.model, seqlen=model.seqlen

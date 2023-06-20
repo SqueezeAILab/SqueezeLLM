@@ -86,6 +86,49 @@ __global__ void VecQuant4MatMulKernelNUQPerChannelBatched(
     int vec_height
 );
 
+template <typename scalar_t>
+__global__ void SPMV_ATOMIC(
+    const       int* __restrict__ rows,
+    const       int* __restrict__ cols,
+    const  scalar_t* __restrict__ mat,
+    const  scalar_t* __restrict__ vec,
+	         scalar_t* __restrict__ mul,
+    const  int num_rows
+);
+
+template <typename scalar_t>
+__global__ void SPMV_ATOMIC_BATCHED(
+    const       int* __restrict__ rows,
+    const       int* __restrict__ cols,
+    const  scalar_t* __restrict__ mat,
+    const  scalar_t* __restrict__ vec,
+	         scalar_t* __restrict__ mul,
+    const  int num_rows,
+    int batch,
+    int vec_height
+);
+
+__global__ void DenseMatVecKernel(
+    const  float* __restrict__ vec,
+    const  float* __restrict__ full_rows,
+    const  int* __restrict__ full_row_indices,
+           float* __restrict__ mul,
+    int topX,
+    int full_width
+);
+
+__global__ void DenseMatVecKernelBatched(
+    const  float* __restrict__ vec,
+    const  float* __restrict__ full_rows,
+    const  int* __restrict__ full_row_indices,
+           float* __restrict__ mul,
+    int topX,
+    int full_width,
+    int batch,
+    int vec_height,
+    int matwidth
+);
+
 void vecquant3matmul_nuq_perchannel_cuda(
   torch::Tensor vec,
   torch::Tensor mat,
@@ -190,6 +233,510 @@ void vecquant4matmul_nuq_perchannel_batched_cuda(
     height, width, batch, vec_height
   );
 }
+
+//NUQ + Sparse
+void vecquant3matmul_spmv_nuq_perchannel_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat3,
+  torch::Tensor lookup_table
+) {
+
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  int height3 = mat3.size(0);
+  int width3 = mat3.size(1);
+
+  dim3 blocks3(
+    (height3 + BLOCKHEIGHT3 - 1) / BLOCKHEIGHT3,
+    (width3 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads3(BLOCKWIDTH);
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic", ([&] {
+      SPMV_ATOMIC<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows
+      );
+    })
+  );
+
+  VecQuant3MatMulKernelNUQPerChannel<<<blocks3, threads3>>>(
+    vec.data_ptr<float>(),
+    mat3.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height3, width3
+  );
+}
+
+//NUQ + Sparse
+void vecquant4matmul_spmv_nuq_perchannel_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat4,
+  torch::Tensor lookup_table
+) {
+
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  int height4 = mat4.size(0);
+  int width4 = mat4.size(1);
+
+  dim3 blocks4(
+    (height4 + BLOCKHEIGHT4 - 1) / BLOCKHEIGHT4,
+    (width4 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads4(BLOCKWIDTH);
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic", ([&] {
+      SPMV_ATOMIC<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows
+      );
+    })
+  );
+
+  VecQuant4MatMulKernelNUQPerChannel<<<blocks4, threads4>>>(
+    vec.data_ptr<float>(),
+    mat4.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height4, width4
+  );
+}
+
+
+//NUQ + Sparse
+void vecquant3matmul_spmv_nuq_perchannel_batched_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat3,
+  torch::Tensor lookup_table
+) {
+
+  // dense kernel
+  int height3 = mat3.size(0);
+  int width3 = mat3.size(1);
+
+  int batch = vec.size(0);
+  int vec_height = vec.size(1);
+
+  dim3 blocks3(
+    (height3 + BLOCKHEIGHT3 - 1) / BLOCKHEIGHT3,
+    (width3 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads3(BLOCKWIDTH);
+
+  VecQuant3MatMulKernelNUQPerChannelBatched<<<blocks3, threads3>>>(
+    vec.data_ptr<float>(),
+    mat3.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height3, width3, batch, vec_height
+  );
+
+  //spmv kernel
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic_batched", ([&] {
+      SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows,
+        batch,
+        vec_height
+      );
+    })
+  );
+
+}
+
+//NUQ + Sparse
+void vecquant4matmul_spmv_nuq_perchannel_batched_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat4,
+  torch::Tensor lookup_table
+) {
+
+  // dense kernel
+  int height4 = mat4.size(0);
+  int width4 = mat4.size(1);
+
+  int batch = vec.size(0);
+  int vec_height = vec.size(1);
+
+  dim3 blocks4(
+    (height4 + BLOCKHEIGHT4 - 1) / BLOCKHEIGHT4,
+    (width4 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads4(BLOCKWIDTH);
+
+  VecQuant4MatMulKernelNUQPerChannelBatched<<<blocks4, threads4>>>(
+    vec.data_ptr<float>(),
+    mat4.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height4, width4, batch, vec_height
+  );
+
+  //spmv kernel
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic_batched", ([&] {
+      SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows,
+        batch,
+        vec_height
+      );
+    })
+  );
+}
+
+
+//NUQ + hybrid sparse kernel
+void vecquant3matmul_spmv_hybrid_nuq_perchannel_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor full_rows,
+  torch::Tensor full_row_indices,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat3,
+  torch::Tensor lookup_table
+) {
+
+  // dense kernel
+  int height3 = mat3.size(0);
+  int width3 = mat3.size(1);
+
+  dim3 blocks3(
+    (height3 + BLOCKHEIGHT3 - 1) / BLOCKHEIGHT3,
+    (width3 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads3(BLOCKWIDTH);
+
+  VecQuant3MatMulKernelNUQPerChannel<<<blocks3, threads3>>>(
+    vec.data_ptr<float>(),
+    mat3.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height3, width3
+  );
+
+  //spmv kernel
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic", ([&] {
+      SPMV_ATOMIC<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows
+      );
+    })
+  );
+
+  // handle topk indices
+  int height = full_rows.size(0);
+  int width = full_rows.size(1);
+  dim3 blocks_topX(
+    (height + BLOCKWIDTH - 1) / BLOCKWIDTH,
+    (width + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads_topX(BLOCKWIDTH);
+
+  //dense matvec kernel here!
+  DenseMatVecKernel<<<blocks_topX, threads_topX>>>(
+    vec.data_ptr<float>(),
+    full_rows.data_ptr<float>(),
+    full_row_indices.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    height,
+    width
+  );
+
+}
+
+
+//NUQ + hybrid sparse kernel
+void vecquant4matmul_spmv_hybrid_nuq_perchannel_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor full_rows,
+  torch::Tensor full_row_indices,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat4,
+  torch::Tensor lookup_table
+) {
+
+  // dense kernel
+  int height4 = mat4.size(0);
+  int width4 = mat4.size(1);
+
+  dim3 blocks4(
+    (height4 + BLOCKHEIGHT4 - 1) / BLOCKHEIGHT4,
+    (width4 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads4(BLOCKWIDTH);
+
+  VecQuant4MatMulKernelNUQPerChannel<<<blocks4, threads4>>>(
+    vec.data_ptr<float>(),
+    mat4.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height4, width4
+  );
+
+  //spmv kernel
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic", ([&] {
+      SPMV_ATOMIC<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows
+      );
+    })
+  );
+
+  // handle topk indices
+  int height = full_rows.size(0);
+  int width = full_rows.size(1);
+  dim3 blocks_topX(
+    (height + BLOCKWIDTH - 1) / BLOCKWIDTH,
+    (width + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads_topX(BLOCKWIDTH);
+
+  //dense matvec kernel here!
+  DenseMatVecKernel<<<blocks_topX, threads_topX>>>(
+    vec.data_ptr<float>(),
+    full_rows.data_ptr<float>(),
+    full_row_indices.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    height,
+    width
+  );
+
+}
+
+//NUQ + hybrid sparse kernel
+void vecquant3matmul_spmv_hybrid_nuq_perchannel_batched_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor full_rows,
+  torch::Tensor full_row_indices,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat3,
+  torch::Tensor lookup_table
+) {
+
+  // dense kernel
+  int height3 = mat3.size(0);
+  int width3 = mat3.size(1);
+
+  int batch = vec.size(0);
+  int vec_height = vec.size(1);
+
+  dim3 blocks3(
+    (height3 + BLOCKHEIGHT3 - 1) / BLOCKHEIGHT3,
+    (width3 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads3(BLOCKWIDTH);
+
+  VecQuant3MatMulKernelNUQPerChannelBatched<<<blocks3, threads3>>>(
+    vec.data_ptr<float>(),
+    mat3.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height3, width3, batch, vec_height
+  );
+
+  //spmv kernel
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic_batched", ([&] {
+      SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows,
+        batch,
+        vec_height
+      );
+    })
+  );
+
+  // handle topk indices
+  int height = full_rows.size(0);
+  int width = full_rows.size(1);
+  dim3 blocks_topX(
+    (height + BLOCKWIDTH - 1) / BLOCKWIDTH,
+    (width + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads_topX(BLOCKWIDTH);
+
+  int matwidth = mul.size(1);
+
+  //dense matvec kernel here!
+  DenseMatVecKernelBatched<<<blocks_topX, threads_topX>>>(
+    vec.data_ptr<float>(),
+    full_rows.data_ptr<float>(),
+    full_row_indices.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    height,
+    width,
+    batch,
+    vec_height,
+    matwidth
+  );
+
+}
+
+
+//NUQ + hybrid sparse kernel
+void vecquant4matmul_spmv_hybrid_nuq_perchannel_batched_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor full_rows,
+  torch::Tensor full_row_indices,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat4,
+  torch::Tensor lookup_table
+) {
+
+  // dense kernel
+  int height4 = mat4.size(0);
+  int width4 = mat4.size(1);
+
+  int batch = vec.size(0);
+  int vec_height = vec.size(1);
+
+  dim3 blocks4(
+    (height4 + BLOCKHEIGHT4 - 1) / BLOCKHEIGHT4,
+    (width4 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads4(BLOCKWIDTH);
+
+  VecQuant4MatMulKernelNUQPerChannelBatched<<<blocks4, threads4>>>(
+    vec.data_ptr<float>(),
+    mat4.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height4, width4, batch, vec_height
+  );
+
+  //spmv kernel
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic_batched", ([&] {
+      SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows,
+        batch,
+        vec_height
+      );
+    })
+  );
+
+  // handle topk indices
+  int height = full_rows.size(0);
+  int width = full_rows.size(1);
+  dim3 blocks_topX(
+    (height + BLOCKWIDTH - 1) / BLOCKWIDTH,
+    (width + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads_topX(BLOCKWIDTH);
+
+  int matwidth = mul.size(1);
+
+  //dense matvec kernel here!
+  DenseMatVecKernelBatched<<<blocks_topX, threads_topX>>>(
+    vec.data_ptr<float>(),
+    full_rows.data_ptr<float>(),
+    full_row_indices.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    height,
+    width,
+    batch,
+    vec_height,
+    matwidth
+  );
+
+}
+
 
 __global__ void VecQuant3MatMulKernelNUQPerChannel(
     const  float* __restrict__ vec,
@@ -487,5 +1034,131 @@ __global__ void VecQuant4MatMulKernelNUQPerChannelBatched(
     }
 
     atomicAdd(&mul[b * width + col], res);
+  }
+}
+
+template <typename scalar_t>
+__global__ void SPMV_ATOMIC(
+  const       int* __restrict__ rows,
+  const       int* __restrict__ cols,
+  const  scalar_t* __restrict__ mat,
+  const  scalar_t* __restrict__ vec,
+         scalar_t* __restrict__ mul,
+  const  int num_rows
+) {
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row < num_rows) {
+        float dot = 0;
+        int start_elem = rows[row];
+        int end_elem = rows[row+1];
+        for (int i = start_elem; i < end_elem; i++) {
+            dot += mat[i] * vec[cols[i]];
+        }
+        atomicAdd(&mul[row], dot);
+    }
+}
+
+template <typename scalar_t>
+__global__ void SPMV_ATOMIC_BATCHED(
+  const       int* __restrict__ rows,
+  const       int* __restrict__ cols,
+  const  scalar_t* __restrict__ mat,
+  const  scalar_t* __restrict__ vec,
+         scalar_t* __restrict__ mul,
+  const  int num_rows,
+  int batch,
+  int vec_height
+) {
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < num_rows) {
+        int start_elem = rows[row];
+        int end_elem = rows[row+1];
+        for (int b = 0; b < batch; ++b){
+            float dot = 0;
+            for (int i = start_elem; i < end_elem; i++) {
+                dot += mat[i] * vec[b * vec_height + cols[i]];
+                // dot += mat[i] * vec[cols[i] * batch + b];
+                // dot += mat[i] * vec[cols[i]];
+            }
+            atomicAdd(&mul[b * num_rows + row], dot);
+            // atomicAdd(&mul[row * batch + b], dot);
+            // atomicAdd(&mul[row], dot);
+        }
+    }
+}
+
+// Dense kernel for only a subset of rows
+__global__ void DenseMatVecKernel(
+    const  float* __restrict__ vec,
+    const  float* __restrict__ full_rows,
+    const  int* __restrict__ full_row_indices,
+           float* __restrict__ mul,
+    int height,
+    int width
+) {
+
+  int row = BLOCKWIDTH * blockIdx.x;
+  int col = BLOCKWIDTH * blockIdx.y + threadIdx.x;
+
+  __shared__ float blockvec[BLOCKWIDTH];
+  blockvec[threadIdx.x] = vec[row + threadIdx.x];
+
+  __syncthreads();
+
+  int i = width * row + col;
+  int k = 0;
+  float res = 0;
+
+  if (threadIdx.x < width) {
+    while (k < BLOCKWIDTH) {
+      res += full_rows[i] * blockvec[k];
+      k += 1;
+      i += width;
+    }
+
+    int col_idx = full_row_indices[col];
+    atomicAdd(&mul[col_idx], res);
+  }
+}
+
+
+// Dense kernel for only a subset of rows
+__global__ void DenseMatVecKernelBatched(
+    const  float* __restrict__ vec,
+    const  float* __restrict__ full_rows,
+    const  int* __restrict__ full_row_indices,
+           float* __restrict__ mul,
+    int height,
+    int width,
+    int batch,
+    int vec_height,
+    int matwidth
+) {
+
+  int row = BLOCKWIDTH * blockIdx.x;
+  int col = BLOCKWIDTH * blockIdx.y + threadIdx.x;
+
+  __shared__ float blockvec[BLOCKWIDTH];
+
+  for (int b = 0; b < batch; ++b){
+    int i = width * row + col;
+    int k = 0;
+    float res = 0;
+
+    __syncthreads();
+    blockvec[threadIdx.x] = vec[b * vec_height + row + threadIdx.x];
+    __syncthreads();
+
+    if (threadIdx.x < width) {
+      while (k < BLOCKWIDTH) {
+        res += full_rows[i] * blockvec[k];
+        k += 1;
+        i += width;
+      }
+
+      int col_idx = full_row_indices[col];
+      atomicAdd(&mul[b * matwidth + col_idx], res);
+    }
   }
 }
