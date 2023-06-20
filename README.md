@@ -99,9 +99,9 @@ You can follow the same procedure for other quantized models.
 CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --eval
 ```
 
-When using checkpoints with sparsity, the "include_sparse" flag should also be passed:
+When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--include_sparse` flag should also be passed:
 ```
-CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s0.5.pt --include_sparse --eval
+CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --eval
 ```
 
 The code was tested on A5000 and A6000 GPUs with Cuda 11.3 and CUDNN 8.2.
