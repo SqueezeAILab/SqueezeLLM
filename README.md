@@ -3,7 +3,7 @@
 ![Thumbnail](figs/thumbnail.png)
 
 
-SqueezeLLM is a post-training quantization framework that incorporates a new method called Dense-and-Sparse Quantization to enable efficient LLM serving. 
+SqueezeLLM is a post-training quantization framework that incorporates a new method called Dense-and-Sparse Quantization to enable efficient LLM serving.
 
 TLDR:
 Deploying LLMs is difficult due to their large memory size. This can be addressed with reduced precision quantization. But a naive method hurts performance. We address this with a new Dense-and-Sparse Quantization method.
@@ -13,7 +13,7 @@ For instance, the Squeeze variant of the Vicuna models can be served within 6 GB
 For more details please check out our [paper](https://arxiv.org/abs/2306.07629).
 
 
-**Updates:** Vicuna-7B and 13B, and LLaMA-30B are all supported with both 3-bit and 4-bit. 
+**Updates:** Vicuna-7B and 13B, and LLaMA-30B are all supported with both 3-bit and 4-bit.
 
 ---
 ## Installation
@@ -53,6 +53,16 @@ Below are the links to download the models.
 | LLaMA-30B    | 3   |  [sq-llama-30b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s0/blob/main/sq-llama-30b-w3-s0.pt) |
 | LLaMA-30B    | 4   | [sq-llama-30b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s0/blob/main/sq-llama-30b-w4-s0.pt) |
 
+| Model |  Bitwidth | Sensitive values (0.5% sparsity) |
+| -------- | -------- | -------- |
+| LLaMA-7B    | 3   |  sq-llama-7b-w3-s0.5 (coming soon) |
+| LLaMA-7B    | 4   | sq-llama-7b-w4-s0.5 (coming soon) |
+| LLaMA-13B    | 3   |  sq-llama-13b-w3-s0.5 (coming soon) |
+| LLaMA-13B    | 4   | sq-llama-13b-w4-s0.5 (coming soon) |
+| LLaMA-30B    | 3   |  sq-llama-30b-w3-s0.5 (coming soon) |
+| LLaMA-30B    | 4   | sq-llama-30b-w4-s0.5 (coming soon) |
+
+
 ### Vicuna
 
 | Model |  Bitwidth | Dense-only (0%) |
@@ -65,8 +75,8 @@ Below are the links to download the models.
 **NOTE:** Sparsity levels with 0.05% and 0.45% are coming soon!
 
 The LLaMA model [license](https://github.com/facebookresearch/llama/blob/main/LICENSE) is currently only available for research purposes. We direct everyone to carefully review the license before using the quantized models.
-Similar to other works on LLaMA, we only release the quantized portions of the model in [Huggingface Model Hub](https://huggingface.co/squeeze-ai-lab). 
-To successfully run our code, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in the commands below. 
+Similar to other works on LLaMA, we only release the quantized portions of the model in [Huggingface Model Hub](https://huggingface.co/squeeze-ai-lab).
+To successfully run our code, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in the commands below.
 We have scripts that will substitute the necessary components, but you will need the original model for those scripts to run.
 
 
@@ -87,6 +97,11 @@ Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt`) locally from the link
 You can follow the same procedure for other quantized models.
 ```
 CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --eval
+```
+
+When using checkpoints with sparsity, the "include_sparse" flag should also be passed:
+```
+CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s0.5.pt --include_sparse --eval
 ```
 
 The code was tested on A5000 and A6000 GPUs with Cuda 11.3 and CUDNN 8.2.
