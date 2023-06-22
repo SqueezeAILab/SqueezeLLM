@@ -89,6 +89,8 @@ When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--incl
 CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --benchmark 128 --check
 ```
 
+**NOTE:** In order to reproduce the perplexity numbers in our paper, please use `--eval` instead of `--benchmark`, following the instruction below.
+
 ### Perplexity Evaluation
 
 The following code will evaluate perplexity using the 3-bit quantized LLaMA-7B model on the C4 dataset, following the same evaluation methodology of [GPTQ](https://github.com/IST-DASLab/gptq) and [GPTQ-For-LLaMA](https://github.com/qwopqwop200/GPTQ-for-LLaMa/).
