@@ -94,6 +94,7 @@ CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load
 ### Perplexity Evaluation
 
 The following code will evaluate perplexity using the 3-bit quantized LLaMA-7B model on the C4 dataset, following the same evaluation methodology of [GPTQ](https://github.com/IST-DASLab/gptq) and [GPTQ-For-LLaMA](https://github.com/qwopqwop200/GPTQ-for-LLaMa/).
+This will reproduce the perplexity numbers reported in our paper.
 Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt`) locally from the link above.
 You can follow the same procedure for other quantized models.
 ```
