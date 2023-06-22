@@ -106,19 +106,9 @@ def llama_eval(model, testenc, dev):
 
 # loading quantized checkpoint
 def load_quant(model, checkpoint, wbits, include_sparse, topX):
-    from transformers import LlamaConfig, LlamaForCausalLM
-    config = LlamaConfig.from_pretrained(model)
-    def noop(*args, **kwargs):
-        pass
-    torch.nn.init.kaiming_uniform_ = noop
-    torch.nn.init.uniform_ = noop
-    torch.nn.init.normal_ = noop
 
-    torch.set_default_dtype(torch.half)
-    transformers.modeling_utils._init_weights = False
-    torch.set_default_dtype(torch.half)
-    model = LlamaForCausalLM(config)
-    torch.set_default_dtype(torch.float)
+    from transformers import LlamaForCausalLM
+    model = LlamaForCausalLM.from_pretrained(model, torch_dtype='auto')
     model = model.eval()
     layers = find_layers(model)
 
@@ -140,14 +130,7 @@ def load_quant(model, checkpoint, wbits, include_sparse, topX):
     for name in ['lm_head']:
         if name in layers:
             del layers[name]
-    make_quant_lut(
-        model, 
-        layers, 
-        wbits, 
-        include_sparse=include_sparse, 
-        numvals=num_vals, 
-        topX=topX,
-    )
+    make_quant_lut(model, layers, wbits, include_sparse=include_sparse, numvals=num_vals, topX=topX)
     del layers
 
     print('Loading model ...')
@@ -275,10 +258,10 @@ if __name__ == '__main__':
 
     if args.load:
         model = load_quant(
-            args.model, 
-            args.load, 
-            args.wbits, 
-            args.include_sparse, 
+            args.model,
+            args.load,
+            args.wbits,
+            args.include_sparse,
             args.num_dense_channels,
         )
     else:
@@ -286,10 +269,10 @@ if __name__ == '__main__':
         model.eval()
 
     dataloader, testloader = get_loaders(
-        args.dataset, 
-        nsamples=args.nsamples, 
-        seed=args.seed, 
-        model=args.model, 
+        args.dataset,
+        nsamples=args.nsamples,
+        seed=args.seed,
+        model=args.model,
         seqlen=model.seqlen,
     )
 
