@@ -15,8 +15,9 @@ For more details please check out our [paper](https://arxiv.org/abs/2306.07629).
 
 **Updates (6/16):** Vicuna-7B and 13B, and LLaMA-30B are all supported with both 3-bit and 4-bit.
 
-**Updates (6/20):** Dense-and-sparse kernel is supported. All the LLaMA checkpoints in the paper (both dense-only and dense-and-sparse) are uploaded. 
-Stay tuned for the Vicuna models!
+**Updates (6/20):** Dense-and-sparse kernel is supported. 
+
+**Updates (6/28):** All the LLaMA/Vicuna checkpoints are uploaded for all sizes and sparsity levels. 
 
 ---
 ## Installation
@@ -55,8 +56,8 @@ Below are the links to download the models.
 | LLaMA-13B    | 4   | [sq-llama-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s0/blob/main/sq-llama-13b-w4-s0.pt) | [sq-llama-13b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s5/blob/main/sq-llama-13b-w4-s5.pt) | [sq-llama-13b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s45/blob/main/sq-llama-13b-w4-s45.pt) |
 | LLaMA-30B    | 3   |  [sq-llama-30b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s0/blob/main/sq-llama-30b-w3-s0.pt) |  [sq-llama-30b-w3-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s5/blob/main/sq-llama-30b-w3-s5.pt) | [sq-llama-30b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s45/blob/main/sq-llama-30b-w3-s45.pt)  |
 | LLaMA-30B    | 4   | [sq-llama-30b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s0/blob/main/sq-llama-30b-w4-s0.pt) |  [sq-llama-30b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s5/blob/main/sq-llama-30b-w4-s5.pt) | [sq-llama-30b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s45/blob/main/sq-llama-30b-w4-s45.pt)  |
-| LLaMA-65B    | 3   |  [sq-llama-65b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s0/blob/main/sq-llama-65b-w3-s0.pt) | Coming soon | Coming soon | 
-| LLaMA-65B    | 4   |  [sq-llama-65b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s0/blob/main/sq-llama-65b-w4-s0.pt) | Coming soon | Coming soon | 
+| LLaMA-65B    | 3   |  [sq-llama-65b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s0/blob/main/sq-llama-65b-w3-s0.pt) | [sq-llama-65b-w3-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s5/blob/main/sq-llama-30b-w3-s5.pt) | [sq-llama-65b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s45/blob/main/sq-llama-30b-w3-s45.pt) | 
+| LLaMA-65B    | 4   |  [sq-llama-65b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s0/blob/main/sq-llama-65b-w4-s0.pt) | [sq-llama-65b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s5/blob/main/sq-llama-30b-w4-s5.pt) | [sq-llama-65b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s45/blob/main/sq-llama-30b-w4-s45.pt) | 
 
 ### Vicuna
 
@@ -112,6 +113,7 @@ The code was tested on A5000 and A6000 GPUs with Cuda 11.3 and CUDNN 8.2.
 ## Acknowledgement
 
 This code reuses components from several libraries including [GPTQ](https://github.com/IST-DASLab/gptq) as well as [GPTQ-For-LLaMA](https://github.com/qwopqwop200/GPTQ-for-LLaMa/).
+
 
 ---
 
