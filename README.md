@@ -44,7 +44,7 @@ python setup_cuda.py install
 
 ## Supported Models
 
-Currently, we support [LLaMA](https://arxiv.org/abs/2302.13971) 7B, 13B, 30B and 65B, instruction-tuned [Vicuna](https://lmsys.org/blog/2023-03-30-vicuna/) 7B and 13B.
+Currently, we support [LLaMA](https://arxiv.org/abs/2302.13971) 7B, 13B, 30B and 65B, instruction-tuned [Vicuna](https://lmsys.org/blog/2023-03-30-vicuna/) 7B and 13B, Salesforce [XGen](https://blog.salesforceairesearch.com/xgen/) 7B with 8k sequence length, and [OPT](https://arxiv.org/abs/2205.01068) 1.3B to 30B.
 For each model, we support 3-bit and 4-bit quantized models, with sparse levels of 0% (dense-only), 0.05%, and 0.45%.
 See our [Paper](https://arxiv.org/abs/2306.07629) for more detailed information on these configurations.
 Below are the links to download the models.
@@ -84,7 +84,20 @@ Please refer to the [blog post](https://blog.salesforceairesearch.com/xgen/) fro
 | XGen-7B-8k-Inst    | 3     | [sq-xgen-7b-8k-inst-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w3-s0/blob/main/sq-xgen-7b-8k-inst-w3-s0.pt)  | [sq-xgen-7b-8k-inst-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w3-s45/blob/main/sq-xgen-7b-8k-inst-w3-s45.pt) |
 | XGen-7B-8k-Inst    | 4     | [sq-xgen-7b-8k-inst-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w4-s0/blob/main/sq-xgen-7b-8k-inst-w4-s0.pt)  | [sq-xgen-7b-8k-inst-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w4-s45/blob/main/sq-xgen-7b-8k-inst-w4-s45.pt) |
 
+### OPT
 
+| Model |  Bitwidth | Dense-only (0%) | 0.45% sparsity |
+| -------- | -------- | -------- | ---- |
+| OPT-1.3B   | 3   | [sq-opt-1.3b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-1.3b-w3-s0/blob/main/sq-opt-1.3b-w3-s0.pt) | Coming Soon |
+| OPT-1.3B   | 4   | [sq-opt-1.3b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-1.3b-w4-s0/blob/main/sq-opt-1.3b-w4-s0.pt) | Coming Soon |
+| OPT-2.7B   | 3   | [sq-opt-2.7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-2.7b-w3-s0/blob/main/sq-opt-2.7b-w3-s0.pt) | Coming Soon |
+| OPT-2.7B   | 4   | [sq-opt-2.7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-2.7b-w4-s0/blob/main/sq-opt-2.7b-w4-s0.pt) | Coming Soon |
+| OPT-6.7B   | 3   | [sq-opt-6.7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-6.7b-w3-s0/blob/main/sq-opt-6.7b-w3-s0.pt) | Coming Soon |
+| OPT-6.7B   | 4   | [sq-opt-6.7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-6.7b-w4-s0/blob/main/sq-opt-6.7b-w4-s0.pt) | Coming Soon |
+| OPT-13B   | 3   | [sq-opt-13b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-13b-w3-s0/blob/main/sq-opt-13b-w3-s0.pt) | Coming Soon |
+| OPT-13B   | 4   | [sq-opt-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-13b-w4-s0/blob/main/sq-opt-13b-w4-s0.pt) | Coming Soon |
+| OPT-30B   | 3   | [sq-opt-30b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-30b-w3-s0/blob/main/sq-opt-30b-w3-s0.pt) | Coming Soon |
+| OPT-30B   | 4   | [sq-opt-30b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-30b-w4-s0/blob/main/sq-opt-30b-w4-s0.pt) | Coming Soon |
 ---
 
 ## Running the Models
