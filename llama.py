@@ -127,7 +127,12 @@ def llama_eval(model, testenc, dev):
 
 # loading quantized checkpoint
 def load_quant(model, checkpoint, wbits, include_sparse, topX):
+<<<<<<< HEAD
     if "xgen" in checkpoint or "opt" in checkpoint:
+=======
+
+    if "xgen" in checkpoint:
+>>>>>>> origin/main
         # TODO: this is a hacky solution, will be preperly implemented after all the model checkpoints are updated with
         # the new packing scheme that includes the non-linear weights
         from transformers import AutoConfig, AutoModelForCausalLM

@@ -12,12 +12,15 @@ With this approach, we are able to serve larger models with smaller memory footp
 For instance, the Squeeze variant of the Vicuna models can be served within 6 GB of memory and reach 2% higher MMLU than the baseline model in FP16 with an even 2x larger memory footprint.
 For more details please check out our [paper](https://arxiv.org/abs/2306.07629).
 
+**Updates (7/5):** Salesforce's XGen models (both [Base](https://huggingface.co/Salesforce/xgen-7b-8k-base) and [Inst](https://huggingface.co/Salesforce/xgen-7b-8k-inst)) with 8k sequence length are supported.
 
-**Updates (6/16):** Vicuna-7B and 13B, and LLaMA-30B are all supported with both 3-bit and 4-bit.
+**Updates (6/28):** All the LLaMA/Vicuna checkpoints are uploaded for all sizes and sparsity levels. 
 
 **Updates (6/20):** Dense-and-sparse kernel is supported. 
 
-**Updates (6/28):** All the LLaMA/Vicuna checkpoints are uploaded for all sizes and sparsity levels. 
+**Updates (6/16):** Vicuna-7B and 13B, and LLaMA-30B are all supported with both 3-bit and 4-bit.
+
+
 
 ---
 ## Installation
@@ -41,7 +44,7 @@ python setup_cuda.py install
 
 ## Supported Models
 
-Currently, we support [LLaMA](https://arxiv.org/abs/2302.13971) 7B, 13B, and 30B, as well as the instruction-tuned [Vicuna](https://lmsys.org/blog/2023-03-30-vicuna/) 7B and 13B.
+Currently, we support [LLaMA](https://arxiv.org/abs/2302.13971) 7B, 13B, 30B and 65B, instruction-tuned [Vicuna](https://lmsys.org/blog/2023-03-30-vicuna/) 7B and 13B.
 For each model, we support 3-bit and 4-bit quantized models, with sparse levels of 0% (dense-only), 0.05%, and 0.45%.
 See our [Paper](https://arxiv.org/abs/2306.07629) for more detailed information on these configurations.
 Below are the links to download the models.
@@ -56,8 +59,8 @@ Below are the links to download the models.
 | LLaMA-13B    | 4   | [sq-llama-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s0/blob/main/sq-llama-13b-w4-s0.pt) | [sq-llama-13b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s5/blob/main/sq-llama-13b-w4-s5.pt) | [sq-llama-13b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-13b-w4-s45/blob/main/sq-llama-13b-w4-s45.pt) |
 | LLaMA-30B    | 3   |  [sq-llama-30b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s0/blob/main/sq-llama-30b-w3-s0.pt) |  [sq-llama-30b-w3-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s5/blob/main/sq-llama-30b-w3-s5.pt) | [sq-llama-30b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s45/blob/main/sq-llama-30b-w3-s45.pt)  |
 | LLaMA-30B    | 4   | [sq-llama-30b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s0/blob/main/sq-llama-30b-w4-s0.pt) |  [sq-llama-30b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s5/blob/main/sq-llama-30b-w4-s5.pt) | [sq-llama-30b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s45/blob/main/sq-llama-30b-w4-s45.pt)  |
-| LLaMA-65B    | 3   |  [sq-llama-65b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s0/blob/main/sq-llama-65b-w3-s0.pt) | [sq-llama-65b-w3-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s5/blob/main/sq-llama-30b-w3-s5.pt) | [sq-llama-65b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w3-s45/blob/main/sq-llama-30b-w3-s45.pt) | 
-| LLaMA-65B    | 4   |  [sq-llama-65b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s0/blob/main/sq-llama-65b-w4-s0.pt) | [sq-llama-65b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s5/blob/main/sq-llama-30b-w4-s5.pt) | [sq-llama-65b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-30b-w4-s45/blob/main/sq-llama-30b-w4-s45.pt) | 
+| LLaMA-65B    | 3   |  [sq-llama-65b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s0/blob/main/sq-llama-65b-w3-s0.pt) | [sq-llama-65b-w3-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s5/blob/main/sq-llama-65b-w3-s5.pt) | [sq-llama-65b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s45/blob/main/sq-llama-65b-w3-s45.pt) | 
+| LLaMA-65B    | 4   |  [sq-llama-65b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s0/blob/main/sq-llama-65b-w4-s0.pt) | [sq-llama-65b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s5/blob/main/sq-llama-65b-w4-s5.pt) | [sq-llama-65b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s45/blob/main/sq-llama-65b-w4-s45.pt) | 
 
 ### Vicuna (v1.1)
 
@@ -69,56 +72,78 @@ Below are the links to download the models.
 | Vicuna-13B    | 4    | [sq-vicuna-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w4-s0/blob/main/sq-vicuna-13b-w4-s0.pt)  | [sq-vicuna-13b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w4-s45/blob/main/sq-vicuna-13b-w4-s45.pt) |
 
 
-### Vicuna (v1.3)
-
-Please refer to [FastChat documentation](https://github.com/lm-sys/FastChat/blob/main/docs/vicuna_weights_version.md) for details on differences between different versions of Vicuna.
+### XGen (8k Sequence length)
+[XGen-7B-8k-Base](https://huggingface.co/Salesforce/xgen-7b-8k-base) is a 7B model pre-trained under 8K sequence length.
+[XGen-7B-8k-Inst](https://huggingface.co/Salesforce/xgen-7b-8k-inst) is a supervised finetuned model on public domain instructional data for instruction following applications.
+Please refer to the [blog post](https://blog.salesforceairesearch.com/xgen/) from Salesforce AI Research for more details on the models.
 
 | Model |  Bitwidth | Dense-only (0%) | 0.45% sparsity |
 | -------- | -------- | -------- | ---- |
-| Vicuna-7B    | 3   | Coming Soon  | Coming Soon |
-| Vicuna-7B    | 4     | Coming Soon  | Coming Soon |
-| Vicuna-13B    | 3      | Coming Soon  | Coming Soon |
-| Vicuna-13B    | 4     | Coming Soon  | Coming Soon |
-| Vicuna-33B    | 3     | Coming Soon  | Coming Soon |
-| Vicuna-33B    | 4     | Coming Soon  | Coming Soon |
+| XGen-7B-8k-Base    | 3   | [sq-xgen-7b-8k-base-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w3-s0/blob/main/sq-xgen-7b-8k-base-w3-s0.pt)  | [sq-xgen-7b-8k-base-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w3-s45/blob/main/sq-xgen-7b-8k-base-w3-s45.pt) |
+| XGen-7B-8k-Base    | 4     | [sq-xgen-7b-8k-base-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w4-s0/blob/main/sq-xgen-7b-8k-base-w4-s0.pt)  | [sq-xgen-7b-8k-base-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w4-s45/blob/main/sq-xgen-7b-8k-base-w4-s45.pt) |
+| XGen-7B-8k-Inst    | 3     | [sq-xgen-7b-8k-inst-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w3-s0/blob/main/sq-xgen-7b-8k-inst-w3-s0.pt)  | [sq-xgen-7b-8k-inst-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w3-s45/blob/main/sq-xgen-7b-8k-inst-w3-s45.pt) |
+| XGen-7B-8k-Inst    | 4     | [sq-xgen-7b-8k-inst-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w4-s0/blob/main/sq-xgen-7b-8k-inst-w4-s0.pt)  | [sq-xgen-7b-8k-inst-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w4-s45/blob/main/sq-xgen-7b-8k-inst-w4-s45.pt) |
 
 
-The LLaMA model [license](https://github.com/facebookresearch/llama/blob/main/LICENSE) is currently only available for research purposes. We direct everyone to carefully review the license before using the quantized models.
-Similar to other works on LLaMA, we only release the quantized portions of the model in [Huggingface Model Hub](https://huggingface.co/squeeze-ai-lab).
-To successfully run our code, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in the commands below.
-We have scripts that will substitute the necessary components, but you will need the original model for those scripts to run.
+---
 
+## Running the Models
 
 ### Benchmarking
 
-The following code will run and benchmark the 3-bit quantized LLaMA-7B model on the C4 dataset. The `--torch_profile` argument can be passed when running benchmarking to replicate the runtime results from the paper.
-Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt`) locally from the link above.
-You can follow the same procedure for other quantized models.
+The following code will run and benchmark the 3-bit quantized models on the C4 dataset. 
+The `--torch_profile` argument can be passed when running benchmarking to replicate the runtime results from the paper.
+Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt` or `sq-xgen-7b-8k-base-w3-s0.py`) locally from the links above.
+
+Note that for the LLaMA model, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
+For other model types, you can simply assign the Huggingface model name directly (e.g. `Salesforce/xgen-7b-8k-base`).
+You can follow the same procedure for other model types and quantization settings such as bit width and sparsity level.
 
 ```
-CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check
+# LLaMA Benchmarking
+CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check
+
+# XGen Benchmarking
+CUDA_VISIBLE_DEVICES=0 python llama.py Salesforce/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --benchmark 128 --check
 ```
 
 When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--include_sparse` flag should also be passed:
 ```
-CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --benchmark 128 --check
+# LLaMA Benchmarking
+CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --benchmark 128 --check
+
+# XGen Benchmarking
+CUDA_VISIBLE_DEVICES=0 python llama.py Salesforce/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --benchmark 128 --check
 ```
 
 **NOTE:** In order to reproduce the perplexity numbers in our paper, please use `--eval` instead of `--benchmark`, following the instruction below.
 
 ### Perplexity Evaluation
 
-The following code will evaluate perplexity using the 3-bit quantized LLaMA-7B model on the C4 dataset, following the same evaluation methodology of [GPTQ](https://github.com/IST-DASLab/gptq) and [GPTQ-For-LLaMA](https://github.com/qwopqwop200/GPTQ-for-LLaMa/).
+The following code will evaluate perplexity using the 3-bit quantized models on the C4 dataset, 
+following the same evaluation methodology of [GPTQ](https://github.com/IST-DASLab/gptq) and [GPTQ-For-LLaMA](https://github.com/qwopqwop200/GPTQ-for-LLaMa/).
 This will reproduce the perplexity numbers reported in our paper.
-Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt`) locally from the link above.
-You can follow the same procedure for other quantized models.
+Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt` or `sq-xgen-7b-8k-base-w3-s0.py`) locally from the links above.
+
+Note that for the LLaMA model, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
+For other model types, you can simply assign the Huggingface model name directly (e.g. `Salesforce/xgen-7b-8k-base`).
+You can follow the same procedure for other model types and quantization settings such as bit width and sparsity level.
+
 ```
-CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --eval
+# LLaMA Perplexity Evaluation
+CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --eval
+
+# XGen Perplexity Evaluation
+CUDA_VISIBLE_DEVICES=0 python llama.py Salesforce/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --eval
 ```
 
 When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--include_sparse` flag should also be passed:
 ```
-CUDA_VISIBLE_DEVICES=0 python llama.py <path-to-llama-7b-hf> c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --eval
+# LLaMA Perplexity Evaluation
+CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --include_sparse --eval
+
+# XGen Perplexity Evaluation
+CUDA_VISIBLE_DEVICES=0 python llama.py Salesforce/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --eval
 ```
 
 The code was tested on A5000 and A6000 GPUs with Cuda 11.3 and CUDNN 8.2.
