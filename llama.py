@@ -3,37 +3,43 @@ import time
 import torch
 import torch.nn as nn
 
-import transformers
 from squeezellm.modelutils import *
 from squeezellm.quant import *
 
-import pickle
-import json
+from squeezellm.model_parse import (
+    parse_model,
+    get_layers,
+    get_embedding,
+    get_norm,
+)
 
-def get_llama(model):
+def get_model(model):
     import torch
     def skip(*args, **kwargs):
         pass
     torch.nn.init.kaiming_uniform_ = skip
     torch.nn.init.uniform_ = skip
     torch.nn.init.normal_ = skip
-    from transformers import LlamaForCausalLM
-    model = LlamaForCausalLM.from_pretrained(model, torch_dtype='auto')
+    from transformers import AutoModelForCausalLM
+    model = AutoModelForCausalLM.from_pretrained(model)
     model.seqlen = 2048
     return model
 
 @torch.no_grad()
 def llama_eval(model, testenc, dev):
     print('Evaluating ...')
+    model_type = parse_model(model)
 
     testenc = testenc.input_ids
     nsamples = testenc.numel() // model.seqlen
 
     use_cache = model.config.use_cache
     model.config.use_cache = False
-    layers = model.model.layers
+    layers = get_layers(model, model_type)
+    embeddings = get_embedding(model, model_type)
+    for i in range(len(embeddings)):
+        embeddings[i] = embeddings[i].to(dev)
 
-    model.model.embed_tokens = model.model.embed_tokens.to(dev)
     layers[0] = layers[0].to(dev)
 
     dtype = next(iter(model.parameters())).dtype
@@ -50,8 +56,10 @@ def llama_eval(model, testenc, dev):
             inps[cache['i']] = inp
             cache['i'] += 1
             cache['attention_mask'] = kwargs['attention_mask']
-            cache['position_ids'] = kwargs['position_ids']
+            if 'position_ids' in kwargs:
+                cache['position_ids'] = kwargs['position_ids']
             raise ValueError
+
     layers[0] = Catcher(layers[0])
     for i in range(nsamples):
         batch = testenc[:, (i * model.seqlen):((i + 1) * model.seqlen)].to(dev)
@@ -62,34 +70,47 @@ def llama_eval(model, testenc, dev):
     layers[0] = layers[0].module
 
     layers[0] = layers[0].cpu()
-    model.model.embed_tokens = model.model.embed_tokens.cpu()
+    for i in range(len(embeddings)):
+        embeddings[i] = embeddings[i].cpu()
     torch.cuda.empty_cache()
 
     outs = torch.zeros_like(inps)
     attention_mask = cache['attention_mask']
-    position_ids = cache['position_ids']
+    position_ids = cache.get('position_ids')
 
     for i in range(len(layers)):
-        print(i)
+        print("Layer", i)
         layer = layers[i].to(dev)
 
         for j in range(nsamples):
-            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids = position_ids)[0]
+            if model_type == 'opt':
+                outs[j] = layer(
+                    inps[j].unsqueeze(0),
+                    attention_mask=attention_mask,
+                )[0]
+            else:
+                assert model_type == 'llama'
+                outs[j] = layer(
+                    inps[j].unsqueeze(0), 
+                    attention_mask=attention_mask, 
+                    position_ids=position_ids,
+                )[0]
         layers[i] = layer.cpu()
         del layer
         torch.cuda.empty_cache()
         inps, outs = outs, inps
 
-    if model.model.norm is not None:
-        model.model.norm = model.model.norm.to(dev)
+    norm = get_norm(model, model_type)
+    if norm is not None:
+        norm = norm.to(dev)
     model.lm_head = model.lm_head.to(dev)
 
     testenc = testenc.to(dev)
     nlls = []
     for i in range(nsamples):
         hidden_states = inps[i].unsqueeze(0)
-        if model.model.norm is not None:
-            hidden_states = model.model.norm(hidden_states)
+        if norm is not None:
+            hidden_states = norm(hidden_states)
         lm_logits = model.lm_head(hidden_states)
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = testenc[
@@ -106,8 +127,7 @@ def llama_eval(model, testenc, dev):
 
 # loading quantized checkpoint
 def load_quant(model, checkpoint, wbits, include_sparse, topX):
-
-    if "xgen" in checkpoint:
+    if "xgen" in checkpoint or "opt" in checkpoint:
         # TODO: this is a hacky solution, will be preperly implemented after all the model checkpoints are updated with
         # the new packing scheme that includes the non-linear weights
         from transformers import AutoConfig, AutoModelForCausalLM
@@ -151,6 +171,9 @@ def load_quant(model, checkpoint, wbits, include_sparse, topX):
 
 # function for benchmarking runtime
 def benchmark(model, input_ids, check=False):
+    model_type = parse_model(model)
+    layers = get_layers(model, model_type)
+
     input_ids = input_ids.to(model.gpus[0] if hasattr(model, 'gpus') else DEV)
     torch.cuda.synchronize()
 
@@ -160,7 +183,7 @@ def benchmark(model, input_ids, check=False):
             if cache['past']:
                 cache['past'][i] = None
         return tmp
-    for i, layer in enumerate(model.model.layers):
+    for i, layer in enumerate(layers):
         layer.register_forward_hook(clear_past(i))
 
     print('Benchmarking ...')
@@ -272,7 +295,7 @@ if __name__ == '__main__':
             args.num_dense_channels,
         )
     else:
-        model = get_llama(args.model)
+        model = get_model(args.model)
         model.eval()
 
     dataloader, testloader = get_loaders(
