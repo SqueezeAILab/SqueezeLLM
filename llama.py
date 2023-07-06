@@ -107,8 +107,15 @@ def llama_eval(model, testenc, dev):
 # loading quantized checkpoint
 def load_quant(model, checkpoint, wbits, include_sparse, topX):
 
-    from transformers import LlamaForCausalLM
-    model = LlamaForCausalLM.from_pretrained(model, torch_dtype='auto')
+    if "xgen" in checkpoint:
+        # TODO: this is a hacky solution, will be preperly implemented after all the model checkpoints are updated with
+        # the new packing scheme that includes the non-linear weights
+        from transformers import AutoConfig, AutoModelForCausalLM
+        config = AutoConfig.from_pretrained(model)
+        model = AutoModelForCausalLM.from_config(config)
+    else:
+        from transformers import LlamaForCausalLM
+        model = LlamaForCausalLM.from_pretrained(model, torch_dtype='auto')
     model = model.eval()
     layers = find_layers(model)
 
