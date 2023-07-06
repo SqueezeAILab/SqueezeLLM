@@ -79,10 +79,10 @@ Please refer to the [blog post](https://blog.salesforceairesearch.com/xgen/) fro
 
 | Model |  Bitwidth | Dense-only (0%) | 0.45% sparsity |
 | -------- | -------- | -------- | ---- |
-| XGen-7B-8k-Base    | 3   | [sq-xgen-7b-8k-base-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w3-s0)  | [sq-xgen-7b-8k-base-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w3-s45) |
-| XGen-7B-8k-Base    | 4     | [sq-xgen-7b-8k-base-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w4-s0)  | [sq-xgen-7b-8k-base-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w4-s45) |
-| XGen-7B-8k-Inst    | 3     | [sq-xgen-7b-8k-inst-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w3-s0)  | [sq-xgen-7b-8k-inst-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w3-s45) |
-| XGen-7B-8k-Inst    | 4     | [sq-xgen-7b-8k-inst-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w4-s0)  | [sq-xgen-7b-8k-inst-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w4-s45) |
+| XGen-7B-8k-Base    | 3   | [sq-xgen-7b-8k-base-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w3-s0/blob/main/sq-xgen-7b-8k-base-w3-s0.pt)  | [sq-xgen-7b-8k-base-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w3-s45/blob/main/sq-xgen-7b-8k-base-w3-s45.pt) |
+| XGen-7B-8k-Base    | 4     | [sq-xgen-7b-8k-base-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w4-s0/blob/main/sq-xgen-7b-8k-base-w4-s0.pt)  | [sq-xgen-7b-8k-base-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-base-w4-s45/blob/main/sq-xgen-7b-8k-base-w4-s45.pt) |
+| XGen-7B-8k-Inst    | 3     | [sq-xgen-7b-8k-inst-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w3-s0/blob/main/sq-xgen-7b-8k-inst-w3-s0.pt)  | [sq-xgen-7b-8k-inst-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w3-s45/blob/main/sq-xgen-7b-8k-inst-w3-s45.pt) |
+| XGen-7B-8k-Inst    | 4     | [sq-xgen-7b-8k-inst-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w4-s0/blob/main/sq-xgen-7b-8k-inst-w4-s0.pt)  | [sq-xgen-7b-8k-inst-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-xgen-7b-8k-inst-w4-s45/blob/main/sq-xgen-7b-8k-inst-w4-s45.pt) |
 
 
 ---
