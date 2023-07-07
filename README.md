@@ -88,16 +88,16 @@ Please refer to the [blog post](https://blog.salesforceairesearch.com/xgen/) fro
 
 | Model |  Bitwidth | Dense-only (0%) | 0.45% sparsity |
 | -------- | -------- | -------- | ---- |
-| OPT-1.3B   | 3   | [sq-opt-1.3b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-1.3b-w3-s0/blob/main/sq-opt-1.3b-w3-s0.pt)  | Coming Soon |
-| OPT-1.3B   | 4   | [sq-opt-1.3b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-1.3b-w4-s0/blob/main/sq-opt-1.3b-w4-s0.pt)  | Coming Soon |
-| OPT-2.7B   | 3   | [sq-opt-2.7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-2.7b-w3-s0/blob/main/sq-opt-2.7b-w3-s0.pt)  | Coming Soon |
-| OPT-2.7B   | 4   | [sq-opt-2.7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-2.7b-w4-s0/blob/main/sq-opt-2.7b-w4-s0.pt)  | Coming Soon |
-| OPT-6.7B   | 3   | [sq-opt-6.7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-6.7b-w3-s0/blob/main/sq-opt-6.7b-w3-s0.pt)  | Coming Soon |
-| OPT-6.7B   | 4   | [sq-opt-6.7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-6.7b-w4-s0/blob/main/sq-opt-6.7b-w4-s0.pt)  | Coming Soon |
-| OPT-13B   | 3   | [sq-opt-13b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-13b-w3-s0/blob/main/sq-opt-13b-w3-s0.pt)  | Coming Soon |
-| OPT-13B   | 4   | [sq-opt-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-13b-w4-s0/blob/main/sq-opt-13b-w4-s0.pt)  | Coming Soon |
-| OPT-30B   | 3   | [sq-opt-30b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-30b-w3-s0/blob/main/sq-opt-30b-w3-s0.pt)  | Coming Soon |
-| OPT-30B   | 4   | [sq-opt-30b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-30b-w4-s0/blob/main/sq-opt-30b-w4-s0.pt)  | Coming Soon |
+| OPT-1.3B   | 3   | [sq-opt-1.3b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-1.3b-w3-s0/blob/main/sq-opt-1.3b-w3-s0.pt)  | [sq-opt-1.3b-w3-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-1.3b-w3-s50/blob/main/sq-opt-1.3b-w3-s50.pt) |
+| OPT-1.3B   | 4   | [sq-opt-1.3b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-1.3b-w4-s0/blob/main/sq-opt-1.3b-w4-s0.pt)  | [sq-opt-1.3b-w4-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-1.3b-w4-s50/blob/main/sq-opt-1.3b-w4-s50.pt)  |
+| OPT-2.7B   | 3   | [sq-opt-2.7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-2.7b-w3-s0/blob/main/sq-opt-2.7b-w3-s0.pt)  | [sq-opt-2.7b-w3-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-2.7b-w3-s50/blob/main/sq-opt-2.7b-w3-s50.pt) |
+| OPT-2.7B   | 4   | [sq-opt-2.7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-2.7b-w4-s0/blob/main/sq-opt-2.7b-w4-s0.pt)  | [sq-opt-2.7b-w4-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-2.7b-w4-s50/blob/main/sq-opt-2.7b-w4-s50.pt) |
+| OPT-6.7B   | 3   | [sq-opt-6.7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-6.7b-w3-s0/blob/main/sq-opt-6.7b-w3-s0.pt)  | [sq-opt-6.7b-w3-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-6.7b-w3-s50/blob/main/sq-opt-6.7b-w3-s50.pt) |
+| OPT-6.7B   | 4   | [sq-opt-6.7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-6.7b-w4-s0/blob/main/sq-opt-6.7b-w4-s0.pt)  | [sq-opt-6.7b-w4-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-6.7b-w4-s50/blob/main/sq-opt-6.7b-w4-s50.pt) |
+| OPT-13B   | 3   | [sq-opt-13b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-13b-w3-s0/blob/main/sq-opt-13b-w3-s0.pt)  | [sq-opt-13b-w3-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-13b-w3-s50/blob/main/sq-opt-13b-w3-s50.pt) |
+| OPT-13B   | 4   | [sq-opt-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-13b-w4-s0/blob/main/sq-opt-13b-w4-s0.pt)  | [sq-opt-13b-w4-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-13b-w4-s50/blob/main/sq-opt-13b-w4-s50.pt) |
+| OPT-30B   | 3   | [sq-opt-30b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-30b-w3-s0/blob/main/sq-opt-30b-w3-s0.pt)  | [sq-opt-30b-w3-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-30b-w3-s50/blob/main/sq-opt-30b-w3-s50.pt) |
+| OPT-30B   | 4   | [sq-opt-30b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-opt-30b-w4-s0/blob/main/sq-opt-30b-w4-s0.pt)  | [sq-opt-30b-w4-s50](https://huggingface.co/squeeze-ai-lab/sq-opt-30b-w4-s50/blob/main/sq-opt-30b-w4-s50.pt) |
 ---
 
 ## Running the Models
