@@ -1,0 +1,11 @@
+{
+  "add_eos_token": false,
+  "add_special_tokens": true,
+  "clean_up_tokenization_spaces": true,
+  "model_max_length": 1000000000000000019884624838656,
+  "pad_token": null,
+  "tokenizer_class": "XgenTokenizer",
+  "auto_map": {
+    "AutoTokenizer": ["tokenization_xgen.XgenTokenizer", null]
+  }
+}
