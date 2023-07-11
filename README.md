@@ -12,6 +12,8 @@ With this approach, we are able to serve larger models with smaller memory footp
 For instance, the Squeeze variant of the Vicuna models can be served within 6 GB of memory and reach 2% higher MMLU than the baseline model in FP16 with an even 2x larger memory footprint.
 For more details please check out our [paper](https://arxiv.org/abs/2306.07629).
 
+**Updates (7/10):** All models other than LLaMA and Vicuna v1.1 can be run and evaluated without downloading the original checkpoints. 
+
 **Updates (7/5):** Salesforce's XGen models (both [Base](https://huggingface.co/Salesforce/xgen-7b-8k-base) and [Inst](https://huggingface.co/Salesforce/xgen-7b-8k-inst)) with 8k sequence length and OPT models are supported.
 
 **Updates (6/28):** All the LLaMA/Vicuna checkpoints are uploaded for all sizes and sparsity levels. 
@@ -109,7 +111,7 @@ The `--torch_profile` argument can be passed when running benchmarking to replic
 Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt` or `sq-xgen-7b-8k-base-w3-s0.py`) locally from the links above.
 
 Note that for the LLaMA model, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
-For other model types, you can simply assign the Huggingface model name directly (e.g. `Salesforce/xgen-7b-8k-base`).
+For other model types, you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
 You can follow the same procedure for other model types and quantization settings such as bit width and sparsity level.
 
 ```
@@ -117,7 +119,7 @@ You can follow the same procedure for other model types and quantization setting
 CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check
 
 # XGen Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py Salesforce/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --benchmark 128 --check
 ```
 
 When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--include_sparse` flag should also be passed:
@@ -126,7 +128,7 @@ When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--incl
 CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --benchmark 128 --check
 
 # XGen Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py Salesforce/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --benchmark 128 --check
 ```
 
 **NOTE:** In order to reproduce the perplexity numbers in our paper, please use `--eval` instead of `--benchmark`, following the instruction below.
@@ -139,7 +141,7 @@ This will reproduce the perplexity numbers reported in our paper.
 Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt` or `sq-xgen-7b-8k-base-w3-s0.py`) locally from the links above.
 
 Note that for the LLaMA model, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
-For other model types, you can simply assign the Huggingface model name directly (e.g. `Salesforce/xgen-7b-8k-base`).
+For other model types, you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
 You can follow the same procedure for other model types and quantization settings such as bit width and sparsity level.
 
 ```
@@ -147,7 +149,7 @@ You can follow the same procedure for other model types and quantization setting
 CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --eval
 
 # XGen Perplexity Evaluation
-CUDA_VISIBLE_DEVICES=0 python llama.py Salesforce/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --eval
+CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --eval
 ```
 
 When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--include_sparse` flag should also be passed:
@@ -156,7 +158,7 @@ When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--incl
 CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --include_sparse --eval
 
 # XGen Perplexity Evaluation
-CUDA_VISIBLE_DEVICES=0 python llama.py Salesforce/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --eval
+CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --eval
 ```
 
 The code was tested on A5000 and A6000 GPUs with Cuda 11.3 and CUDNN 8.2.
