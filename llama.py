@@ -290,7 +290,7 @@ if __name__ == '__main__':
         print(args.model)
         model = load_quant(
             args.model,
-            f"{args.model}{args.load}",
+            args.load,
             args.wbits,
             args.include_sparse,
             args.num_dense_channels,
