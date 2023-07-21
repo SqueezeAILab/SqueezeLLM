@@ -12,15 +12,11 @@ With this approach, we are able to serve larger models with smaller memory footp
 For instance, the Squeeze variant of the Vicuna models can be served within 6 GB of memory and reach 2% higher MMLU than the baseline model in FP16 with an even 2x larger memory footprint.
 For more details please check out our [paper](https://arxiv.org/abs/2306.07629).
 
+**Updates (7/21):** Vicuna v1.3 7B and 13B are uploaded. 
+
 **Updates (7/10):** All models other than LLaMA and Vicuna v1.1 can be run and evaluated without downloading the original checkpoints. 
 
 **Updates (7/5):** Salesforce's XGen models (both [Base](https://huggingface.co/Salesforce/xgen-7b-8k-base) and [Inst](https://huggingface.co/Salesforce/xgen-7b-8k-inst)) with 8k sequence length and OPT models are supported.
-
-**Updates (6/28):** All the LLaMA/Vicuna checkpoints are uploaded for all sizes and sparsity levels. 
-
-**Updates (6/20):** Dense-and-sparse kernel is supported. 
-
-**Updates (6/16):** Vicuna-7B and 13B, and LLaMA-30B are all supported with both 3-bit and 4-bit.
 
 
 
@@ -74,6 +70,19 @@ Below are the links to download the models.
 | Vicuna-13B    | 4    | [sq-vicuna-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w4-s0/blob/main/sq-vicuna-13b-w4-s0.pt)  | [sq-vicuna-13b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w4-s45/blob/main/sq-vicuna-13b-w4-s45.pt) |
 
 
+### Vicuna (v1.3)
+
+Please refer to the [Fastchat documentation](https://github.com/lm-sys/FastChat/blob/main/docs/vicuna_weights_version.md) for more details about the differences between v1.1 vs v1.3.
+
+| Model |  Bitwidth | Dense-only (0%) |
+| -------- | -------- | -------- | 
+| Vicuna-7B-v1.3    | 3   | [sq-vicuna-7b-v1.3-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-7b-v1.3-w3-s0/blob/main/sq-vicuna-7b-v1.3-w3-s0.pt) | 
+| Vicuna-7B-v1.3    | 4   | [sq-vicuna-7b-v1.3-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-7b-v1.3-w4-s0/blob/main/sq-vicuna-7b-v1.3-w4-s0.pt) | 
+| Vicuna-13B-v1.3    | 3   | [sq-vicuna-7b-v1.3-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-v1.3-w3-s0/blob/main/sq-vicuna-13b-v1.3-w3-s0.pt) | 
+| Vicuna-13B-v1.3    | 4   | [sq-vicuna-7b-v1.3-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-v1.3-w4-s0/blob/main/sq-vicuna-13b-v1.3-w4-s0.pt) | 
+| Vicuna-30B-v1.3    | 3   | Coming Soon | 
+| Vicuna-30B-v1.3    | 4   | Coming Soon | 
+
 ### XGen (8k Sequence length)
 [XGen-7B-8k-Base](https://huggingface.co/Salesforce/xgen-7b-8k-base) is a 7B model pre-trained under 8K sequence length.
 [XGen-7B-8k-Inst](https://huggingface.co/Salesforce/xgen-7b-8k-inst) is a supervised finetuned model on public domain instructional data for instruction following applications.
@@ -116,19 +125,19 @@ You can follow the same procedure for other model types and quantization setting
 
 ```
 # LLaMA Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check --torch_profile
 
 # XGen Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --benchmark 128 --check --torch_profile
 ```
 
 When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--include_sparse` flag should also be passed:
 ```
 # LLaMA Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --benchmark 128 --check --torch_profile
 
 # XGen Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --benchmark 128 --check --torch_profile
 ```
 
 **NOTE:** In order to reproduce the perplexity numbers in our paper, please use `--eval` instead of `--benchmark`, following the instruction below.
