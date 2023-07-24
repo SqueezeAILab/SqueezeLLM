@@ -119,8 +119,8 @@ The following code will run and benchmark the 3-bit quantized models on the C4 d
 The `--torch_profile` argument can be passed when running benchmarking to replicate the runtime results from the paper.
 Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt` or `sq-xgen-7b-8k-base-w3-s0.py`) locally from the links above.
 
-Note that for the LLaMA model, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
-For other model types, you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
+Note that for the LLaMA and Vicuna v1.1 models, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
+For other model types (e.g. Vicuna v1.3, XGen, etc.), you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
 You can follow the same procedure for other model types and quantization settings such as bit width and sparsity level.
 
 ```
@@ -149,8 +149,9 @@ following the same evaluation methodology of [GPTQ](https://github.com/IST-DASLa
 This will reproduce the perplexity numbers reported in our paper.
 Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt` or `sq-xgen-7b-8k-base-w3-s0.py`) locally from the links above.
 
-Note that for the LLaMA model, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
-For other model types, you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
+
+Note that for the LLaMA and Vicuna v1.1 models, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
+For other model types (e.g. Vicuna v1.3, XGen, etc.), you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
 You can follow the same procedure for other model types and quantization settings such as bit width and sparsity level.
 
 ```
