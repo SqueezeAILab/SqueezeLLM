@@ -287,6 +287,7 @@ if __name__ == '__main__':
         args.load = args.load.as_posix()
 
     if args.load:
+        print(args.model)
         model = load_quant(
             args.model,
             args.load,
