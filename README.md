@@ -12,17 +12,7 @@ With this approach, we are able to serve larger models with smaller memory footp
 For instance, the Squeeze variant of the Vicuna models can be served within 6 GB of memory and reach 2% higher MMLU than the baseline model in FP16 with an even 2x larger memory footprint.
 For more details please check out our [paper](https://arxiv.org/abs/2306.07629).
 
-**Updates (7/10):** All models other than LLaMA and Vicuna v1.1 can be run and evaluated without downloading the original checkpoints. 
-
-**Updates (7/5):** Salesforce's XGen models (both [Base](https://huggingface.co/Salesforce/xgen-7b-8k-base) and [Inst](https://huggingface.co/Salesforce/xgen-7b-8k-inst)) with 8k sequence length and OPT models are supported.
-
-**Updates (6/28):** All the LLaMA/Vicuna checkpoints are uploaded for all sizes and sparsity levels. 
-
-**Updates (6/20):** Dense-and-sparse kernel is supported. 
-
-**Updates (6/16):** Vicuna-7B and 13B, and LLaMA-30B are all supported with both 3-bit and 4-bit.
-
-
+**Updates (9/30):** The code for quantizing custom models is now available ([link](https://github.com/kssteven418/squeezellm-private/tree/sk/working#from-scratch-quantization)).
 
 ---
 ## Installation
@@ -43,6 +33,11 @@ python setup_cuda.py install
 ```
 
 ---
+
+## From-scratch Quantization 
+
+To quantize your own models, follow the procedure in this [link](https://github.com/kssteven418/squeezellm-private/tree/sk/working/quantization). 
+
 
 ## Supported Models
 

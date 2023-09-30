@@ -4,6 +4,25 @@ import torch.nn as nn
 import math
 import quant_cuda
 
+def round_to_nearest_pole_sim(w, poles):
+    """
+    w: weight values (1d vector)
+    poles: tuple of values
+
+    Round the numbers in w to the nearest value in poles.
+    """
+    stack = []
+    for c in poles:
+        diff = (w - c).abs()
+        stack.append(diff)
+    diff = torch.stack(stack)
+    idx = diff.argmin(axis=0)
+    aug = 0
+    for i, c in enumerate(poles):
+        aug += (idx == i) * c
+    return aug
+
+
 # drop-in layer replacement class
 class QuantLinearLUT(nn.Module):
     def __init__(self, bits, infeatures, outfeatures, bias, include_sparse=False, numvals=0, topX=10):
@@ -33,6 +52,83 @@ class QuantLinearLUT(nn.Module):
         if topX > 0:
             self.register_buffer('full_rows', torch.zeros((infeatures, topX), dtype=torch.float32))
             self.register_buffer('full_row_indices', torch.zeros(topX, dtype=torch.int32))
+
+
+    def pack(self, linear, lookup_table, include_sparse):
+        if self.include_bias: #linear.bias is not None:
+            self.bias = linear.bias.clone() #todo: check this condition
+
+        # self.lookup_table = lookup_table.float()
+        lut,outliers = lookup_table
+
+        # handle dense matrix
+        intweight = linear.weight.data.clone()
+
+        if include_sparse:
+            outliers = outliers.to_dense()
+
+        #get zero mapping
+        num_channels = len(lut)
+        for channel in range(num_channels):
+            centroid, indices = lut[channel][0] # last 0 is for group 0
+            intweight[channel] = torch.from_numpy(indices)
+            self.lookup_table[channel] = torch.from_numpy(centroid)
+
+            if include_sparse:
+                zero_mapping = round_to_nearest_pole_sim(torch.zeros(1), centroid)
+                nonzero_vals = torch.nonzero(outliers[channel])
+
+                outliers_channel = outliers[channel]
+                outliers_channel[nonzero_vals] -= zero_mapping
+                outliers[channel] = outliers_channel
+
+        if include_sparse:
+            outliers = outliers.to_sparse(layout=torch.sparse_csr)
+
+            # save sparse matrix (already in CSR)
+            self.register_buffer('rows', outliers.crow_indices().to(torch.int32))
+            self.register_buffer('cols', outliers.col_indices().to(torch.int32))
+            self.register_buffer('vals', outliers.values().to(torch.float32))
+
+        intweight = intweight.to(torch.int)
+        intweight = intweight.t().contiguous()
+        intweight = intweight.numpy().astype(np.uint32)
+        qweight = np.zeros(
+            (intweight.shape[0] // 32 * self.bits, intweight.shape[1]), dtype=np.uint32
+        )
+        i = 0
+        row = 0
+        while row < qweight.shape[0]:
+            if self.bits in [2,4,8]:
+                for j in range(i, i + (32//self.bits)):
+                    qweight[row] |= intweight[j] << (self.bits * (j - i))
+                i += 32//self.bits
+                row += 1
+            elif self.bits == 3:
+                for j in range(i, i + 10):
+                    qweight[row] |= intweight[j] << (3 * (j - i))
+                i += 10
+                qweight[row] |= intweight[i] << 30
+                row += 1
+                qweight[row] |= (intweight[i] >> 2) & 1
+                i += 1
+                for j in range(i, i + 10):
+                    qweight[row] |= intweight[j] << (3 * (j - i) + 1)
+                i += 10
+                qweight[row] |= intweight[i] << 31
+                row += 1
+                qweight[row] |= (intweight[i] >> 1) & 0x3
+                i += 1
+                for j in range(i, i + 10):
+                    qweight[row] |= intweight[j] << (3 * (j - i) + 2)
+                i += 10
+                row += 1
+            else:
+                raise NotImplementedError("Only 2,3,4,8 bits are supported.")
+
+        qweight = qweight.astype(np.int32)
+        self.qweight = torch.from_numpy(qweight)
+
 
     #replacement forward pass
     def forward(self, x):
