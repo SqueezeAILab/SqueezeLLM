@@ -1,3 +1,17 @@
+from transformers import LlamaForCausalLM, AutoModelForCausalLM, OPTForCausalLM
+
+def load_model(model, model_type, cache_dir=None):
+    if model_type == "opt":
+        model = OPTForCausalLM.from_pretrained(
+            model,
+            torch_dtype='auto',
+            cache_dir=cache_dir,
+            trust_remote_code=True,
+        )
+    else:
+        model = LlamaForCausalLM.from_pretrained(model, torch_dtype='auto', cache_dir=cache_dir)
+    return model
+
 def parse_model(model):
     if "opt" in str(type(model)).lower():
         model_type = "opt"
@@ -15,6 +29,31 @@ def get_module_names(model_type):
     else:
         assert model_type == "llama"
         return ["q", "k", "v", "o", "gate", "up", "down"]
+
+def get_modules(layer, model_type):
+    if model_type == "opt":
+        modules = [
+            layer.self_attn.q_proj,
+            layer.self_attn.k_proj,
+            layer.self_attn.v_proj,
+            layer.self_attn.out_proj,
+            layer.fc1,
+            layer.fc2,
+        ]
+    else:
+        # llama or vicuna
+        assert model_type == "llama"
+        modules = [
+            layer.self_attn.q_proj, 
+            layer.self_attn.k_proj, 
+            layer.self_attn.v_proj, 
+            layer.self_attn.o_proj,
+            layer.mlp.gate_proj, 
+            layer.mlp.up_proj,
+            layer.mlp.down_proj,
+        ]
+    
+    return modules
 
 
 def get_sequential(model_type):
