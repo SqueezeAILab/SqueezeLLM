@@ -288,26 +288,26 @@ def make_quant_lut(module, names, bits, name='', include_sparse=False, numvals=N
     for attr in dir(module):
         tmp = getattr(module, attr)
         name1 = name + '.' + attr if name != '' else attr
-        if name1 in names:
-            if numvals is not None:
-                print('name1 ', name1)
-                num = numvals[name1]
-            else:
-                num = 0
-            delattr(module, attr)
-            setattr(
-                module, 
-                attr, 
-                QuantLinearLUT(
-                    bits, 
-                    tmp.in_features, 
-                    tmp.out_features, 
-                    tmp.bias is not None, 
-                    include_sparse=include_sparse, 
-                    numvals=num, 
-                    topX=topX,
-                ),
-            )
+        if name1 not in names:
+            continue
+        num = 0
+        if numvals:
+            num = getattr(numvals[name1])
+        delattr(module, attr)
+        setattr(
+            module, 
+            attr, 
+            QuantLinearLUT(
+                bits, 
+                tmp.in_features, 
+                tmp.out_features, 
+                tmp.bias is not None, 
+                include_sparse=include_sparse, 
+                numvals=num, 
+                topX=topX,
+            ),
+        )
+
     for name1, child in module.named_children():
         make_quant_lut(
             child, 

@@ -41,12 +41,12 @@ To quantize your own models, follow the procedure in this [link](https://github.
 
 ## Supported Models
 
-Currently, we support [LLaMA](https://arxiv.org/abs/2302.13971) 7B, 13B, 30B and 65B, instruction-tuned [Vicuna](https://lmsys.org/blog/2023-03-30-vicuna/) 7B and 13B, [XGen](https://blog.salesforceairesearch.com/xgen/) 7B with 8k sequence length, and OPT 1.3B to 30B.
+Currently, we support [LLaMA](https://arxiv.org/abs/2302.13971) 7B, 13B, 30B and 65B, [LLaMA-2](https://arxiv.org/abs/2307.09288) 7B and 13B, instruction-tuned [Vicuna](https://lmsys.org/blog/2023-03-30-vicuna/) 7B and 13B, [XGen](https://blog.salesforceairesearch.com/xgen/) 7B with 8k sequence length, and OPT 1.3B to 30B.
 For each model, we support 3-bit and 4-bit quantized models, with sparse levels of 0% (dense-only), 0.05%, and 0.45%.
 See our [Paper](https://arxiv.org/abs/2306.07629) for more detailed information on these configurations.
 Below are the links to download the models.
 
-### LLaMA
+### LLaMA (v1)
 
 | Model |  Bitwidth | Dense-only (0%) | 0.05% Sparsity | 0.45% sparsity |
 | -------- | -------- | -------- | ------ | ---- |
@@ -59,6 +59,15 @@ Below are the links to download the models.
 | LLaMA-65B    | 3   |  [sq-llama-65b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s0/blob/main/sq-llama-65b-w3-s0.pt) | [sq-llama-65b-w3-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s5/blob/main/sq-llama-65b-w3-s5.pt) | [sq-llama-65b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w3-s45/blob/main/sq-llama-65b-w3-s45.pt) | 
 | LLaMA-65B    | 4   |  [sq-llama-65b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s0/blob/main/sq-llama-65b-w4-s0.pt) | [sq-llama-65b-w4-s5](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s5/blob/main/sq-llama-65b-w4-s5.pt) | [sq-llama-65b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-llama-65b-w4-s45/blob/main/sq-llama-65b-w4-s45.pt) | 
 
+### LLaMA-2
+
+| Model |  Bitwidth | Dense-only (0%) |
+| -------- | -------- | -------- |
+| LLaMA-2-7B    | 3   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-7b-w3-s0/blob/main/sq-llama-2-7b-w3-s0.pt) | 
+| LLaMA-2-7B    | 4   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-7b-w4-s0/blob/main/sq-llama-2-7b-w4-s0.pt) | 
+| LLaMA-2-13B    | 3   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-13b-w3-s0/blob/main/sq-llama-2-13b-w3-s0.pt) | 
+| LLaMA-2-13B    | 4   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-13b-w4-s0/blob/main/sq-llama-2-13b-w4-s0.pt) | 
+
 ### Vicuna (v1.1)
 
 | Model |  Bitwidth | Dense-only (0%) | 0.45% sparsity |
@@ -68,6 +77,19 @@ Below are the links to download the models.
 | Vicuna-13B    | 3     | [sq-vicuna-13b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w3-s0/blob/main/sq-vicuna-13b-w3-s0.pt)  | [sq-vicuna-13b-w3-s45](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w3-s45/blob/main/sq-vicuna-13b-w3-s45.pt) |
 | Vicuna-13B    | 4    | [sq-vicuna-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w4-s0/blob/main/sq-vicuna-13b-w4-s0.pt)  | [sq-vicuna-13b-w4-s45](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-w4-s45/blob/main/sq-vicuna-13b-w4-s45.pt) |
 
+
+### Vicuna (v1.3)
+
+Please refer to the [Fastchat documentation](https://github.com/lm-sys/FastChat/blob/main/docs/vicuna_weights_version.md) for more details about the differences between v1.1 vs v1.3.
+
+| Model |  Bitwidth | Dense-only (0%) |
+| -------- | -------- | -------- | 
+| Vicuna-7B-v1.3    | 3   | [sq-vicuna-7b-v1.3-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-7b-v1.3-w3-s0/blob/main/sq-vicuna-7b-v1.3-w3-s0.pt) | 
+| Vicuna-7B-v1.3    | 4   | [sq-vicuna-7b-v1.3-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-7b-v1.3-w4-s0/blob/main/sq-vicuna-7b-v1.3-w4-s0.pt) | 
+| Vicuna-13B-v1.3    | 3   | [sq-vicuna-7b-v1.3-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-v1.3-w3-s0/blob/main/sq-vicuna-13b-v1.3-w3-s0.pt) | 
+| Vicuna-13B-v1.3    | 4   | [sq-vicuna-7b-v1.3-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-vicuna-13b-v1.3-w4-s0/blob/main/sq-vicuna-13b-v1.3-w4-s0.pt) | 
+| Vicuna-30B-v1.3    | 3   | Coming Soon | 
+| Vicuna-30B-v1.3    | 4   | Coming Soon | 
 
 ### XGen (8k Sequence length)
 [XGen-7B-8k-Base](https://huggingface.co/Salesforce/xgen-7b-8k-base) is a 7B model pre-trained under 8K sequence length.
@@ -105,25 +127,25 @@ The following code will run and benchmark the 3-bit quantized models on the C4 d
 The `--torch_profile` argument can be passed when running benchmarking to replicate the runtime results from the paper.
 Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt` or `sq-xgen-7b-8k-base-w3-s0.py`) locally from the links above.
 
-Note that for the LLaMA model, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
-For other model types, you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
+Note that for the LLaMA (v1) and Vicuna v1.1 models, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
+For other model types (e.g. Vicuna v1.3, LLaMA-2, XGen, etc.), you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
 You can follow the same procedure for other model types and quantization settings such as bit width and sparsity level.
 
 ```
 # LLaMA Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s0.pt --benchmark 128 --check --torch_profile
 
 # XGen Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --benchmark 128 --check --torch_profile
 ```
 
 When using checkpoints with sparsity (i.e. non-zero sparsity level), the `--include_sparse` flag should also be passed:
 ```
 # LLaMA Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py {model_path} c4 --wbits 3 --load sq-llama-7b-w3-s5.pt --include_sparse --benchmark 128 --check --torch_profile
 
 # XGen Benchmarking
-CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --benchmark 128 --check
+CUDA_VISIBLE_DEVICES=0 python llama.py models/xgen-7b-8k-base c4 --wbits 3 --load sq-xgen-7b-8k-base-w3-s0.pt --include_sparse --benchmark 128 --check --torch_profile
 ```
 
 **NOTE:** In order to reproduce the perplexity numbers in our paper, please use `--eval` instead of `--benchmark`, following the instruction below.
@@ -135,8 +157,9 @@ following the same evaluation methodology of [GPTQ](https://github.com/IST-DASLa
 This will reproduce the perplexity numbers reported in our paper.
 Download the quantized model (e.g. `sq-llama-7b-w3-s0.pt` or `sq-xgen-7b-8k-base-w3-s0.py`) locally from the links above.
 
-Note that for the LLaMA model, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
-For other model types, you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
+
+Note that for the LLaMA (v1) and Vicuna v1.1 models, you need to first obtain the original, pre-trained LLaMA model in the Huggingface-compatible format locally and provide the path in `{model_path}`.
+For other model types (e.g. Vicuna v1.3, LLaMA-2, XGen, etc.), you don't need to install/download the original models separately as we provide Huggingface compatible configs of all supported models in `models`. 
 You can follow the same procedure for other model types and quantization settings such as bit width and sparsity level.
 
 ```
