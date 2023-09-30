@@ -159,13 +159,5 @@ if __name__ == '__main__':
         for k,v in numvals.items():
           model_dict['sparse_threshold.'+k] = v
 
-    #strip out layers to ignore
-    model_dict_list = []
-    for k in model_dict.keys():
-        if 'self_attn' not in k and 'mlp' not in k:
-            model_dict_list.append(k)
-    for k in model_dict_list:
-        del model_dict[k]
-
     #save model
     torch.save(model_dict, args.save)
