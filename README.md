@@ -36,7 +36,7 @@ python setup_cuda.py install
 
 ## From-scratch Quantization 
 
-To quantize your own models, follow the procedure in this [link](https://github.com/kssteven418/squeezellm-private/tree/sk/working/quantization). 
+To quantize your own models, follow the procedure in this [link](https://github.com/SqueezeAILab/SqueezeLLM/tree/main/quantization). 
 
 
 ## Supported Models
