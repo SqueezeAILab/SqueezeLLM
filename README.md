@@ -10,9 +10,9 @@ Deploying LLMs is difficult due to their large memory size. This can be addresse
 Dense-and-Sparse splits weight matrices into two components: A dense component that can be heavily quantized without affecting model performance, as well as a sparse part that preserves sensitive and outlier parts of the weight matrices
 With this approach, we are able to serve larger models with smaller memory footprint, the same latency, and **yet higher accuracy and quality**.
 For instance, the Squeeze variant of the Vicuna models can be served within 6 GB of memory and reach 2% higher MMLU than the baseline model in FP16 with an even 2x larger memory footprint.
-For more details please check out our [paper](https://arxiv.org/abs/2306.07629).
+For more details please check out our [paper](https://arxiv.org/abs/2306.07629v2).
 
-**Updates (9/30):** The code for quantizing custom models is now available ([link](https://github.com/kssteven418/squeezellm-private/tree/sk/working#from-scratch-quantization)).
+**Updates (9/30):** The code for quantizing custom models is now available ([link](https://github.com/SqueezeAILab/SqueezeLLM#from-scratch-quantization)).
 
 ---
 ## Installation
