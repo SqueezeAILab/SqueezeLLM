@@ -12,6 +12,8 @@ With this approach, we are able to serve larger models with smaller memory footp
 For instance, the Squeeze variant of the Vicuna models can be served within 6 GB of memory and reach 2% higher MMLU than the baseline model in FP16 with an even 2x larger memory footprint.
 For more details please check out our [paper](https://arxiv.org/abs/2306.07629v2).
 
+**News (10/21):** [SqueezeLLM](https://github.com/vllm-project/vllm/blob/1f24755bf802a2061bd46f3dd1191b7898f13f45/vllm/model_executor/quantization_utils/squeezellm.py#L8) is now supported within the official [vLLM](https://github.com/vllm-project/vllm) framework.
+
 **Updates (9/30):** The code for quantizing custom models is now available ([link](https://github.com/SqueezeAILab/SqueezeLLM#from-scratch-quantization)).
 
 ---
