@@ -8,6 +8,8 @@ import transformers
 from squeezellm.modelutils import *
 from squeezellm.quant import *
 
+import json
+import os
 
 @torch.no_grad()
 def llama_sequential(model, folder, include_sparse, updated_format):
@@ -161,3 +163,14 @@ if __name__ == '__main__':
 
     #save model
     torch.save(model_dict, args.save)
+
+    #get directory to save quant_config
+    directory = os.path.dirname(args.save)
+    data = {
+        "wbits": args.wbits
+    }
+    output_fn = os.path.join(directory, "quant_config.json")
+
+    #save quant_config
+    with open(output_fn, 'w') as f:
+        json.dump(data, f, indent = 4)
