@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
             config_per_row = []
             module_weight = model_layer[name]
-            _weights_np = module_weight.numpy()
+            _weights_np = module_weight.float().numpy()
 
             n_cluster = 2 ** args.bit
 
