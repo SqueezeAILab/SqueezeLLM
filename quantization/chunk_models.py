@@ -22,7 +22,7 @@ parser.add_argument(
 )
 parser.add_argument(
     '--model_type', type=str, default=None,
-    help='model type', choices=['llama', 'opt']
+    help='model type', choices=['llama', 'opt', 'mistral']
 )
 
 args = parser.parse_args()
