@@ -89,7 +89,7 @@ def llama_eval(model, testenc, dev):
                     attention_mask=attention_mask,
                 )[0]
             else:
-                assert model_type == 'llama'
+                assert model_type in ('llama', 'mistral')
                 outs[j] = layer(
                     inps[j].unsqueeze(0), 
                     attention_mask=attention_mask, 
@@ -127,7 +127,13 @@ def llama_eval(model, testenc, dev):
 
 # loading quantized checkpoint
 def load_quant(model, checkpoint, wbits, include_sparse, topX):
-    if "xgen" in checkpoint or "opt" in checkpoint or ("vicuna" in checkpoint and "v1.3" in checkpoint) or "llama-2" in checkpoint:
+    if (
+        "xgen" in checkpoint or 
+        "opt" in checkpoint or 
+        ("vicuna" in checkpoint and "v1.3" in checkpoint) or 
+        "llama-2" in checkpoint or
+        "mistral" in checkpoint
+    ):
         # TODO: this is a hacky solution, will be preperly implemented after all the model checkpoints are updated with
         # the new packing scheme that includes the non-linear weights
         from transformers import AutoConfig, AutoModelForCausalLM
