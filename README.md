@@ -12,6 +12,8 @@ With this approach, we are able to serve larger models with smaller memory footp
 For instance, the Squeeze variant of the Vicuna models can be served within 6 GB of memory and reach 2% higher MMLU than the baseline model in FP16 with an even 2x larger memory footprint.
 For more details please check out our [paper](https://arxiv.org/abs/2306.07629v2).
 
+**Updates (11/28):** Mistral model is now supported.
+
 **News (10/21):** [SqueezeLLM](https://github.com/vllm-project/vllm/blob/1f24755bf802a2061bd46f3dd1191b7898f13f45/vllm/model_executor/quantization_utils/squeezellm.py#L8) is now supported within the official [vLLM](https://github.com/vllm-project/vllm) framework.
 
 **Updates (9/30):** The code for quantizing custom models is now available ([link](https://github.com/SqueezeAILab/SqueezeLLM#from-scratch-quantization)).
@@ -66,9 +68,16 @@ Below are the links to download the models.
 | Model |  Bitwidth | Dense-only (0%) |
 | -------- | -------- | -------- |
 | LLaMA-2-7B    | 3   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-7b-w3-s0/blob/main/sq-llama-2-7b-w3-s0.pt) | 
-| LLaMA-2-7B    | 4   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-7b-w4-s0/blob/main/sq-llama-2-7b-w4-s0.pt) | 
-| LLaMA-2-13B    | 3   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-13b-w3-s0/blob/main/sq-llama-2-13b-w3-s0.pt) | 
-| LLaMA-2-13B    | 4   |  [sq-llama-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-13b-w4-s0/blob/main/sq-llama-2-13b-w4-s0.pt) | 
+| LLaMA-2-7B    | 4   |  [sq-llama-7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-7b-w4-s0/blob/main/sq-llama-2-7b-w4-s0.pt) | 
+| LLaMA-2-13B    | 3   |  [sq-llama-13b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-13b-w3-s0/blob/main/sq-llama-2-13b-w3-s0.pt) | 
+| LLaMA-2-13B    | 4   |  [sq-llama-13b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-llama-2-13b-w4-s0/blob/main/sq-llama-2-13b-w4-s0.pt) | 
+
+### Mistral
+
+| Model |  Bitwidth | Dense-only (0%) |
+| -------- | -------- | -------- |
+| Mistral-7B    | 3   |  [sq-mistral-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-mistral-7b-w3-s0/blob/main/sq-mistral-7b-w3-s0.pt) | 
+| Mistral-7B    | 4   |  [sq-mistral-7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-mistral-7b-w4-s0/blob/main/sq-mistral-7b-w4-s0.pt) | 
 
 ### Vicuna (v1.1)
 
