@@ -78,6 +78,8 @@ Below are the links to download the models.
 | -------- | -------- | -------- |
 | Mistral-7B    | 3   |  [sq-mistral-7b-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-mistral-7b-w3-s0/blob/main/sq-mistral-7b-w3-s0.pt) | 
 | Mistral-7B    | 4   |  [sq-mistral-7b-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-mistral-7b-w4-s0/blob/main/sq-mistral-7b-w4-s0.pt) | 
+| Mistral-7B-instruct    | 3  |  [sq-mistral-7b-instruct-w3-s0](https://huggingface.co/squeeze-ai-lab/sq-mistral-7b-instruct-w3-s0/blob/main/sq-mistral-7b-instruct-w3-s0.pt) | 
+| Mistral-7B-instruct    | 4  |  [sq-mistral-7b-instruct-w4-s0](https://huggingface.co/squeeze-ai-lab/sq-mistral-7b-instruct-w4-s0/blob/main/sq-mistral-7b-instruct-w4-s0.pt) | 
 
 ### Vicuna (v1.1)
 
