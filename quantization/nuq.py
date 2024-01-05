@@ -79,7 +79,7 @@ if __name__ == "__main__":
             raise Exception(f"Needs chunked gradient file at {gradient_layer}")
             
         try:
-            model_layer = torch.load(f"./{args.model}/layer_{l}.pt")
+            model_layer = torch.load(f"{args.model}/layer_{l}.pt")
         except:
             raise Exception(f"Needs chunked model weight file at {model_layer}")
 
