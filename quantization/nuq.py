@@ -81,7 +81,7 @@ if __name__ == "__main__":
         try:
             model_layer = torch.load(f"{args.model}/layer_{l}.pt")
         except:
-            raise Exception(f"Needs chunked model weight file at {model_layer}")
+            raise Exception(f"Needs chunked model weight file at {args.model}")
 
         config_per_layer = {}
 
