@@ -12,12 +12,10 @@ import json
 import os
 
 @torch.no_grad()
-def llama_sequential(model, folder, include_sparse, updated_format):
-    layers = model.model.layers
+def llama_sequential(model, folder, include_sparse):
+    print('Starting ...')
 
-    if not updated_format and include_sparse:
-        # list of num layers, each item is a dictionary with the keys ["q", "k", "v", "o", "gate", "up", "down"]
-        outlier_list = pickle.load(open(f"{folder}/outliers.pkl", "rb"))
+    layers = model.model.layers
 
     quantizers = {}
     for i in range(len(layers)):
@@ -27,14 +25,13 @@ def llama_sequential(model, folder, include_sparse, updated_format):
             # and each of them are a tuple (centroids, indices)
             lut_layer = pickle.load(f)
 
-        if not updated_format and include_sparse:
-            outlier_list_layer = outlier_list[i]
-        elif include_sparse:
+        if include_sparse:
             with open(f"{folder}/outliers/l{i}.pkl", "rb") as f:
                 # dictionary: key ["q", "k", "v", "o", "gate", "up", "down"] -> list of length channel,
                 # each of which is a list of #group lists, (here, it's always 1)
                 # and each of them are a tuple (centroids, indices)
                 outlier_list_layer = pickle.load(f)
+
 
         sequential_lut = ['q', 'k', 'v', 'o', 'gate', 'up', 'down']
         sequential_lut_real_name = {
@@ -59,9 +56,7 @@ def llama_sequential(model, folder, include_sparse, updated_format):
 
         for s in sequential_lut:
             lut = lut_layer[s]
-            if not updated_format and include_sparse:
-                outliers = outlier_list_layer[s]
-            elif include_sparse:
+            if include_sparse:
                 idx = outlier_index[s]
                 outliers = outlier_list_layer[idx]
             else:
@@ -121,10 +116,6 @@ if __name__ == '__main__':
         '--include_sparse', action='store_true',
         help='Whether loaded checkpoint has sparse matrix.'
     )
-    parser.add_argument(
-        '--updated-format', action='store_true',
-        help='Whether to use the new PTB and C4 eval'
-    )
 
     args = parser.parse_args()
     assert not args.include_sparse, "Sparse not supported yet"
@@ -140,7 +131,6 @@ if __name__ == '__main__':
         model=model, 
         folder=args.folder, 
         include_sparse=args.include_sparse, 
-        updated_format=True,
     )
     print("llama_sequential Done:", time.time() - tick)
 
