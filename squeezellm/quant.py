@@ -184,59 +184,6 @@ class QuantLinearLUT(nn.Module):
         qweight = qweight.astype(np.int32)
         self.qweight = torch.from_numpy(qweight)
 
-    def repack(self, prev_topX=0, new_topX=0):
-        print("prev_topX: ", prev_topX)
-        print("new_topX: ", new_topX)
-
-        # used for reconfiguring hybrid kernel
-        rows = self.rows
-        cols = self.cols
-        vals = self.vals
-        S = torch.sparse_compressed_tensor(rows, cols, vals, layout=torch.sparse_csr)
-        S = S.to_dense()
-
-        print("ORIG SHAPE")
-        print(S.shape)
-        print(self.infeatures)
-        print(self.infeatures - S.shape[-1])
-
-        S = torch.nn.functional.pad(
-            S, pad=(0, self.infeatures - S.shape[-1]), mode="constant", value=0
-        )
-
-        # remove CSR params
-        del self.rows
-        del self.cols
-        del self.vals
-
-        # reconstruct
-        if prev_topX > 0:
-            full_rows = self.full_rows
-            full_row_indices = self.full_row_indices
-            S[full_row_indices] = full_rows.t()
-            # destroy previous full_rows/full_row_indices
-            del full_rows
-            del full_row_indices
-
-        if new_topX > 0:
-            nonzeros_per_row = torch.count_nonzero(S, dim=-1)
-            vals, indices = torch.topk(nonzeros_per_row, new_topX)
-            indices, _ = indices.sort()
-            full_rows = S[indices].clone().float().t().contiguous()
-            S[indices] = 0
-            S = S.float()
-            self.register_buffer("full_rows", full_rows)
-            self.register_buffer("full_row_indices", indices.to(torch.int32))
-        self.topX = new_topX
-
-        # convert to CSR
-        S = S.to_sparse(layout=torch.sparse_csr)
-
-        # self.register_buffer('sparse_matrix', S)
-        self.register_buffer("rows", S.crow_indices().to(torch.int32))
-        self.register_buffer("cols", S.col_indices().to(torch.int32))
-        self.register_buffer("vals", S.values().to(torch.float32))
-
     # replacement forward pass
     def forward(self, x):
         if x.shape[-1] == x.numel():
