@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 
 
+
 def round_to_nearest_pole_sim(w, poles):
     """
     w: weight values (1d vector)
