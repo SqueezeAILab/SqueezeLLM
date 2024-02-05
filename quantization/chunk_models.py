@@ -13,16 +13,15 @@ from squeezellm.model_parse import (
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '--output_path', type=str, default=None,
-    help="chunk the model and store"
+    "--output_path", type=str, default=None, help="chunk the model and store"
 )
+parser.add_argument("--model", type=str, help="model to load")
 parser.add_argument(
-    '--model', type=str,
-    help='model to load'
-)
-parser.add_argument(
-    '--model_type', type=str, default=None,
-    help='model type', choices=['llama', 'opt', 'mistral']
+    "--model_type",
+    type=str,
+    default=None,
+    help="model type",
+    choices=["llama", "opt", "mistral"],
 )
 
 args = parser.parse_args()

@@ -1,8 +1,9 @@
 import torch
 
+
 def remove_outliers_by_sensitivity(
-    model, 
-    gradients, 
+    model,
+    gradients,
     sensitivity,
 ):
     module_names = list(model.keys())
@@ -13,13 +14,13 @@ def remove_outliers_by_sensitivity(
     def _body(gweight, weight):
         num_outliers = int(gweight.numel() * sensitivity / 100)
         thres = gweight.reshape(-1).topk(k=num_outliers).values[-1]
-        
+
         t = gweight > thres
 
         outlier_weight = weight * t
         weight = weight * ~t
-        #print((weight == 0).sum().item() / weight.numel())
-        return  weight.to(weight.dtype), outlier_weight, t.sum().item(), t.numel()
+        # print((weight == 0).sum().item() / weight.numel())
+        return weight.to(weight.dtype), outlier_weight, t.sum().item(), t.numel()
 
     for _name in module_names:
         weight = model[_name].to(torch.float)
@@ -37,9 +38,9 @@ def remove_outliers_by_sensitivity(
 
 
 def remove_outliers_by_threshold(
-    model, 
+    model,
     outlier_config,
-    outlier_weights=None, # to avoid memory leak
+    outlier_weights=None,  # to avoid memory leak
 ):
     module_names = list(model.keys())
     if outlier_weights is None:
@@ -50,7 +51,7 @@ def remove_outliers_by_threshold(
 
     def _body(weight, thres):
         t = torch.logical_or(
-            weight >= thres,  
+            weight >= thres,
             weight <= -thres,
         )
 
@@ -67,17 +68,16 @@ def remove_outliers_by_threshold(
         model[name] = new_weight
         total_outliers += _total_outliers
         total_weights += _total_weights
-        #import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         outlier_weights[0][i] += outlier_weight
 
     print("p outlier:", total_outliers / total_weights * 100)
     return outlier_weights
 
 
-
 def remove_outliers(
-    model, 
-    sensitivity, 
+    model,
+    sensitivity,
     outlier_config,
     gradients=None,
 ):
@@ -103,7 +103,7 @@ def remove_outliers(
     if outlier_config is not None:
         print("removing outliers by threshold")
         outlier_weights = remove_outliers_by_threshold(
-            model=model, 
+            model=model,
             outlier_config=outlier_config,
             outlier_weights=outlier_weights,
         )

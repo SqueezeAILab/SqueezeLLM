@@ -13,37 +13,34 @@ from squeezellm.outliers import remove_outliers
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument("--model", type=str, help="model weights to load", required=True)
 parser.add_argument(
-    '--model', type=str,
-    help='model weights to load', required=True
+    "--model_type", type=str, default=None, help="model type", choices=["llama", "opt"]
 )
 parser.add_argument(
-    '--model_type', type=str, default=None,
-    help='model type', choices=['llama', 'opt']
+    "--gradient", type=str, help="model gradients to load", required=True
 )
 parser.add_argument(
-    '--gradient', type=str,
-    help='model gradients to load', required=True
+    "--bit",
+    type=int,
+    default=3,
+    help="bitwidth",
+    choices=[3, 4],
 )
 parser.add_argument(
-    '--bit', type=int, default=3,
-    help='bitwidth', choices=[3, 4],
+    "--range", type=str, default=None, help="range of layers to quantize"
 )
 parser.add_argument(
-    '--range', type=str, default=None,
-    help='range of layers to quantize'
+    "--output_folder", type=str, required=None, help="path to dump the output"
 )
 parser.add_argument(
-    '--output_folder', type=str, required=None,
-    help='path to dump the output'
+    "--outlier_config",
+    type=str,
+    default=None,
+    help="path to outlier config, obtained from generate_outlier_config.py",
 )
 parser.add_argument(
-    '--outlier_config', type=str, default=None,
-    help='path to outlier config, obtained from generate_outlier_config.py'
-)
-parser.add_argument(
-    '--sensitivity', type=float, default=0,
-    help='sensitivity for outlier extraction'
+    "--sensitivity", type=float, default=0, help="sensitivity for outlier extraction"
 )
 
 
@@ -114,7 +111,7 @@ if __name__ == "__main__":
             outlier_file_name = f"{outlier_folder}/l{l}.pkl"
         else:
             outlier_file_name = None
-        
+
         if os.path.exists(lut_file_name):
             print(f"Skipping layer {l}, file already exists at {lut_file_name}")
             continue
@@ -125,18 +122,20 @@ if __name__ == "__main__":
             gradient_layer = torch.load(f"{args.gradient}/layer_{l}.pt")
         except:
             raise Exception(f"Needs chunked gradient file at {gradient_layer}")
-            
+
         try:
             model_layer = torch.load(f"{args.model}/layer_{l}.pt")
         except:
             raise Exception(f"Needs chunked model weight file at {args.model}")
 
         if is_outlier_mode:
-            print(f"Removing outliers outlier={outlier_threshold}, sensitivity={args.sensitivity}")
+            print(
+                f"Removing outliers outlier={outlier_threshold}, sensitivity={args.sensitivity}"
+            )
             outlier_config_layer = outlier_config[l]
             outliers = remove_outliers(
                 model=model_layer,
-                sensitivity=args.sensitivity, 
+                sensitivity=args.sensitivity,
                 outlier_config=outlier_config_layer,
                 gradients=gradient_layer,
             )
@@ -150,10 +149,10 @@ if __name__ == "__main__":
             module_weight = model_layer[name]
             _weights_np = module_weight.float().numpy()
 
-            n_cluster = 2 ** args.bit
+            n_cluster = 2**args.bit
 
             # iterate over row
-            for i in (range(module_weight.shape[0])):
+            for i in range(module_weight.shape[0]):
                 config_per_group = []
                 weights_np_temp = _weights_np[i, :]
                 weights_np = weights_np_temp.reshape(-1, 1)
@@ -166,16 +165,19 @@ if __name__ == "__main__":
                     sample_weight = np.ones_like(sample_weight)
 
                 kmeans = KMeans(
-                    n_clusters=n_cluster, 
-                    random_state=0, 
-                    n_init="auto", 
+                    n_clusters=n_cluster,
+                    random_state=0,
+                    n_init="auto",
                     max_iter=50,
                 ).fit(
-                    weights_np, 
+                    weights_np,
                     sample_weight=sample_weight,
                 )
                 config_per_group.append(
-                    (kmeans.cluster_centers_.reshape(-1), np.cast['byte'](kmeans.labels_))
+                    (
+                        kmeans.cluster_centers_.reshape(-1),
+                        np.cast["byte"](kmeans.labels_),
+                    )
                 )
                 config_per_row.append(config_per_group)
 

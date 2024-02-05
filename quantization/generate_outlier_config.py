@@ -8,25 +8,19 @@ from squeezellm.model_parse import parse_model, get_module_names
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument("--model", type=str, help="llama model to load")
 parser.add_argument(
-    '--model', type=str,
-    help='llama model to load'
+    "--model_type", type=str, default=None, help="model type", choices=["llama", "opt"]
 )
+parser.add_argument("--cache_dir", type=str, default=None, help="cache directory")
 parser.add_argument(
-    '--model_type', type=str, default=None,
-    help='model type', choices=['llama', 'opt']
-)
-parser.add_argument(
-    '--cache_dir', type=str, default=None,
-    help='cache directory'
-)
-parser.add_argument(
-    '--range', type=float, required=True, 
+    "--range",
+    type=float,
+    required=True,
     help="threshold for outlier range, e.g. 1.8",
 )
 parser.add_argument(
-    '--output_folder', type=str, required=None,
-    help='path to dump the output'
+    "--output_folder", type=str, required=None, help="path to dump the output"
 )
 
 args = parser.parse_args()
@@ -53,9 +47,11 @@ for l in tqdm(range(nlayers)):
         q3 = np.quantile(weights_np, 0.75)
         minimum = q1 - threshold_range * (q3 - q1)
         maximum = q3 + threshold_range * (q3 - q1)
-        minimum, maximum = -max(abs(minimum), abs(maximum)), max(abs(minimum), abs(maximum))
+        minimum, maximum = -max(abs(minimum), abs(maximum)), max(
+            abs(minimum), abs(maximum)
+        )
         num_params = weights_np.shape[0] * weights_np.shape[1]
-        num_outliers = ((weights_np < minimum).sum() + (weights_np > maximum).sum())
+        num_outliers = (weights_np < minimum).sum() + (weights_np > maximum).sum()
         total_params += num_params
         total_outliers += num_outliers
 
