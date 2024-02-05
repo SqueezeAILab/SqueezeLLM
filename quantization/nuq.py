@@ -107,15 +107,11 @@ if __name__ == "__main__":
             continue
 
         lut_file_name = f"{lut_folder}/l{l}.pkl"
-<<<<<<< HEAD
 
         if is_outlier_mode:
             outlier_file_name = f"{outlier_folder}/l{l}.pkl"
         else:
             outlier_file_name = None
-=======
-        print(lut_file_name)
->>>>>>> private/main
 
         if os.path.exists(lut_file_name):
             print(f"Skipping layer {l}, file already exists at {lut_file_name}")
@@ -192,12 +188,9 @@ if __name__ == "__main__":
         with open(lut_file_name, "wb") as f:
             print(f"Saving layer lut to {lut_folder}/l{l}.pkl")
             pickle.dump(config_per_layer, f)
-<<<<<<< HEAD
 
         if is_outlier_mode:
             with open(outlier_file_name, "wb") as f:
                 print(f"Saving layer outliers to {outlier_folder}/l{l}.pkl")
                 # take the first item (since it is a list of length 1)
                 pickle.dump([x.to_sparse() for x in outliers[0]], f)
-=======
->>>>>>> private/main
