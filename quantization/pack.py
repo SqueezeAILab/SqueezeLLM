@@ -57,10 +57,27 @@ def llama_sequential(model, folder, include_sparse):
     return quantizers
 
 
-def llama_pack(model, quantizers, wbits, include_sparse):
+def llama_pack(
+    model,
+    quantizers,
+    wbits,
+    include_sparse,
+    balanced,
+    rowfactor,
+    use_num_nonzeros,
+    num_nonzero_per_thread,
+):
     layers = find_layers(model)
     layers = {n: layers[n] for n in quantizers}
-    make_quant_lut(model, quantizers, wbits, include_sparse=include_sparse)
+    make_quant_lut(
+        model,
+        quantizers,
+        wbits,
+        include_sparse=include_sparse,
+        balanced=balanced,
+        rowfactor=rowfactor,
+        use_num_nonzeros=use_num_nonzeros,
+    )
 
     qlayers = find_layers(model, [QuantLinearLUT])
     print("Packing ...")
@@ -70,11 +87,16 @@ def llama_pack(model, quantizers, wbits, include_sparse):
         print(name)
         lookup_table = quantizers[name]
         layers[name].cpu()
-        qlayers[name].pack(layers[name], lookup_table, include_sparse)
+        qlayers[name].pack2(
+            layers[name],
+            lookup_table,
+            include_sparse,
+            num_nonzero_per_thread=num_nonzero_per_thread,
+        )
         if include_sparse:
             sparsedict[name] = qlayers[name].vals.shape[-1]
 
-    print("Packing Done.")
+    print("Done.")
     return model, sparsedict
 
 
@@ -113,6 +135,25 @@ if __name__ == "__main__":
         help="Whether loaded checkpoint has sparse matrix.",
     )
 
+    #balanced kernel arguments
+    parser.add_argument(
+        '--balanced', action='store_true',
+        help='Whether to use balanced sparse kernel.'
+    )
+    parser.add_argument(
+        '--rowfactor', type=int, default=4,
+        help='Threads per row in matrix.'
+    )
+    parser.add_argument(
+        '--use_num_nonzeros', action='store_true',
+        help='Whether to use num nonzeros to decide how many threads to assign instead of rowfactor.'
+    )
+    parser.add_argument(
+        '--num_nonzero_per_thread', type=int, default=50,
+        help='Num nonzeros assigned to each thread.'
+    )
+
+
     args = parser.parse_args()
     assert not args.include_sparse, "Sparse not supported yet"
 
@@ -137,6 +178,10 @@ if __name__ == "__main__":
         quantizers=quantizers,
         wbits=args.wbits,
         include_sparse=args.include_sparse,
+        balanced=args.balanced,
+        rowfactor=args.rowfactor,
+        use_num_nonzeros=args.use_num_nonzeros,
+        num_nonzero_per_thread=args.num_nonzero_per_thread,
     )
     print("llama_pack Done:", time.time() - tick)
 

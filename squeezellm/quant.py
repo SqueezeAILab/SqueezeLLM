@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import math
 import quant_cuda
 
 
@@ -69,6 +70,10 @@ class QuantLinearLUT(nn.Module):
         include_sparse=False,
         numvals=0,
         topX=0,
+        balanced=False,
+        rowfactor=4,
+        use_num_nonzeros=False,
+        num_nonzero_per_thread=50,
     ):
         super().__init__()
         if bits not in [3, 4]:
@@ -101,6 +106,8 @@ class QuantLinearLUT(nn.Module):
             )
             self.register_buffer("cols", torch.zeros(numvals, dtype=torch.int32))
             self.register_buffer("vals", torch.zeros(numvals, dtype=torch.float32))
+
+            print("self.rows: ", self.rows)
         if topX > 0:
             self.register_buffer(
                 "full_rows", torch.zeros((infeatures, topX), dtype=torch.float32)
@@ -109,7 +116,30 @@ class QuantLinearLUT(nn.Module):
                 "full_row_indices", torch.zeros(topX, dtype=torch.int32)
             )
 
-    def pack2(self, linear, lookup_table, include_sparse):
+        self.balanced = balanced
+        self.use_num_nonzeros = use_num_nonzeros
+
+        if include_sparse and balanced and numvals > 0 and use_num_nonzeros:
+            print("use num_nonzero_per_thread")
+            self.num_threads = int(
+                (numvals + num_nonzero_per_thread - 1) / num_nonzero_per_thread
+            )
+            self.num_threads = 128 * math.ceil(
+                self.num_threads / 128
+            )  # round up to nearest factor of blocksize = 128
+            self.register_buffer(
+                "startrows", torch.zeros(self.num_threads, dtype=torch.int32)
+            )
+            print("self.num_threads : ", self.num_threads)
+        elif include_sparse and balanced:  # use rowfactor
+            print("use rowfactor")
+            self.num_threads = rowfactor * outfeatures
+            self.register_buffer(
+                "startrows", torch.zeros(self.num_threads, dtype=torch.int32)
+            )
+            print("self.num_threads : ", self.num_threads)
+
+    def pack2(self, linear, lookup_table, include_sparse, num_nonzero_per_thread=-1):
         if self.include_bias:  # linear.bias is not None:
             self.bias = linear.bias.clone()  # todo: check this condition
 
@@ -144,6 +174,45 @@ class QuantLinearLUT(nn.Module):
             self.register_buffer("rows", outliers.crow_indices().to(torch.int32))
             self.register_buffer("cols", outliers.col_indices().to(torch.int32))
             self.register_buffer("vals", outliers.values().to(torch.float32))
+
+            # self.balanced
+            if self.balanced:
+                self.numvals = self.vals.shape[0]
+                print("self.numvals: ", self.numvals)
+                print("self.rows: ", self.rows.shape[0])
+
+                if self.use_num_nonzeros:
+                    self.num_threads = int(
+                        (self.numvals + num_nonzero_per_thread - 1)
+                        / num_nonzero_per_thread
+                    )
+                    self.num_threads = 128 * math.ceil(
+                        self.num_threads / 128
+                    )  # round up to nearest factor of blocksize = 128
+
+                nnz_per_thread = int(
+                    (self.numvals + self.num_threads - 1) / self.num_threads
+                )
+                start_rows = torch.zeros(self.num_threads, dtype=torch.int32)
+
+                print("self.num_threads: ", self.num_threads)
+                print("nnz_per_thread: ", nnz_per_thread)
+
+                minidx = 0
+                for i in range(0, self.num_threads):
+                    tmpmin = minidx
+                    for j in range(minidx, self.outfeatures):
+                        if nnz_per_thread * i > self.numvals:
+                            start_rows[i] = -1
+                            break
+                        elif self.rows[j] < nnz_per_thread * i:
+                            start_rows[i] = j
+                            tmpmin = j
+                        else:
+                            break
+                    minidx = tmpmin
+
+                self.register_buffer("startrows", start_rows)
 
         intweight = intweight.to(torch.int)
         intweight = intweight.t().contiguous()
@@ -211,6 +280,20 @@ class QuantLinearLUT(nn.Module):
                         self.qweight,
                         self.lookup_table,
                     )
+                elif self.include_sparse and self.balanced:
+                    quant_cuda.vecquant3matmul_spmv_balanced_nuq_perchannel(
+                        self.rows,
+                        self.cols,
+                        self.startrows,
+                        self.vals,
+                        x,
+                        y,
+                        self.qweight,
+                        self.lookup_table,
+                        self.outfeatures,
+                        self.num_threads,
+                        self.numvals,
+                    )
                 elif self.include_sparse:
                     quant_cuda.vecquant3matmul_spmv_nuq_perchannel(
                         self.rows,
@@ -241,6 +324,20 @@ class QuantLinearLUT(nn.Module):
                         self.qweight,
                         self.lookup_table,
                     )
+                elif self.include_sparse and self.balanced:
+                    quant_cuda.vecquant4matmul_spmv_balanced_nuq_perchannel(
+                        self.rows,
+                        self.cols,
+                        self.startrows,
+                        self.vals,
+                        x,
+                        y,
+                        self.qweight,
+                        self.lookup_table,
+                        self.outfeatures,
+                        self.num_threads,
+                        self.numvals,
+                    )
                 elif self.include_sparse:
                     quant_cuda.vecquant4matmul_spmv_nuq_perchannel(
                         self.rows,
@@ -256,6 +353,7 @@ class QuantLinearLUT(nn.Module):
                     quant_cuda.vecquant4matmul_nuq_perchannel(
                         x, self.qweight, y, self.lookup_table
                     )
+
             y = y.to(dtype)
             return y.reshape(outshape)
         else:
@@ -332,7 +430,17 @@ class QuantLinearLUT(nn.Module):
 
 
 def make_quant_lut(
-    module, names, bits, name="", include_sparse=False, numvals=None, topX=0
+    module,
+    names,
+    bits,
+    name="",
+    include_sparse=False,
+    numvals=None,
+    topX=0,
+    balanced=False,
+    rowfactor=4,
+    use_num_nonzeros=False,
+    num_nonzero_per_thread=50,
 ):
     if isinstance(module, QuantLinearLUT):
         return
@@ -357,6 +465,10 @@ def make_quant_lut(
                     include_sparse=include_sparse,
                     numvals=num,
                     topX=topX,
+                    balanced=balanced,
+                    rowfactor=rowfactor,
+                    use_num_nonzeros=use_num_nonzeros,
+                    num_nonzero_per_thread=num_nonzero_per_thread,
                 ),
             )
     for name1, child in module.named_children():
@@ -368,4 +480,8 @@ def make_quant_lut(
             include_sparse=include_sparse,
             numvals=numvals,
             topX=topX,
+            balanced=balanced,
+            rowfactor=rowfactor,
+            use_num_nonzeros=use_num_nonzeros,
+            num_nonzero_per_thread=num_nonzero_per_thread,
         )
