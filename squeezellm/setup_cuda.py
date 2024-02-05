@@ -1,4 +1,4 @@
-from setuptools import setup, Extension
+from setuptools import Extension, setup
 from torch.utils import cpp_extension
 
 setup(

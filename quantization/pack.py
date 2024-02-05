@@ -1,15 +1,14 @@
-import time
+import json
+import os
 import pickle
+import time
 
 import torch
 import torch.nn as nn
-
 import transformers
 from squeezellm.modelutils import *
 from squeezellm.quant import *
 
-import json
-import os
 
 
 @torch.no_grad()
@@ -82,6 +81,7 @@ def llama_pack(model, quantizers, wbits, include_sparse):
 
 if __name__ == "__main__":
     import argparse
+
     from squeezellm.datautils import *
 
     parser = argparse.ArgumentParser()

@@ -1,8 +1,10 @@
+import math
+
 import numpy as np
+import quant_cuda
 import torch
 import torch.nn as nn
-import math
-import quant_cuda
+
 
 
 def round_to_nearest_pole_sim(w, poles):
