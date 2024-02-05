@@ -1,10 +1,11 @@
-import os
-import json
 import argparse
+import json
+import os
+
 import numpy as np
 import torch
+from squeezellm.model_parse import get_module_names, parse_model
 from tqdm import tqdm
-from squeezellm.model_parse import parse_model, get_module_names
 
 parser = argparse.ArgumentParser()
 
