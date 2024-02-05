@@ -1,10 +1,7 @@
-import math
-
 import numpy as np
-import quant_cuda
 import torch
 import torch.nn as nn
-
+import quant_cuda
 
 
 def round_to_nearest_pole_sim(w, poles):
@@ -26,6 +23,41 @@ def round_to_nearest_pole_sim(w, poles):
     return aug
 
 
+def dense_plus_sparse(w, poles, thresh=0.99, per_channel=False):
+    """
+    w: weight values (1d vector)
+    poles: tuple of values
+    thresh: outlier threshold
+    per_channel - whether LUT is per-channel
+
+    Remove outliers for sparse matrix and then
+    round the numbers in w to the nearest value in poles.
+    """
+    outlier_threshold = torch.quantile(torch.abs(w), thresh)
+    outliers = (torch.abs(w) > outlier_threshold).float()
+    D = w * (1 - outliers)  # dense tensor (before quantization)
+
+    Q = []
+    zero_mappings = []
+    for i in range(w.shape[0]):
+        if per_channel:
+            p = poles[i]
+        else:
+            p = poles
+        Q.append(round_to_nearest_pole_sim(D[i], p))
+        # when we zero out the outliers, they are mapped the nearest-to-zero pole, not zero
+        # we need to keep track of this mapping so we can subtract it later
+        zero_mappings.append(round_to_nearest_pole_sim(torch.zeros(1), p))
+    Q = torch.stack(Q)  # dense tensor (after non-uniform quantization)
+    zero_mappings = torch.stack(zero_mappings)
+
+    delta = zero_mappings * outliers
+    S = w * outliers
+    S = S - delta  # sparse tensor
+
+    return Q, S
+
+
 # drop-in layer replacement class
 class QuantLinearLUT(nn.Module):
     def __init__(
@@ -36,7 +68,7 @@ class QuantLinearLUT(nn.Module):
         bias,
         include_sparse=False,
         numvals=0,
-        topX=10,
+        topX=0,
     ):
         super().__init__()
         if bits not in [3, 4]:
@@ -77,7 +109,7 @@ class QuantLinearLUT(nn.Module):
                 "full_row_indices", torch.zeros(topX, dtype=torch.int32)
             )
 
-    def pack(self, linear, lookup_table, include_sparse):
+    def pack2(self, linear, lookup_table, include_sparse):
         if self.include_bias:  # linear.bias is not None:
             self.bias = linear.bias.clone()  # todo: check this condition
 
@@ -152,6 +184,59 @@ class QuantLinearLUT(nn.Module):
         qweight = qweight.astype(np.int32)
         self.qweight = torch.from_numpy(qweight)
 
+    def repack(self, prev_topX=0, new_topX=0):
+        print("prev_topX: ", prev_topX)
+        print("new_topX: ", new_topX)
+
+        # used for reconfiguring hybrid kernel
+        rows = self.rows
+        cols = self.cols
+        vals = self.vals
+        S = torch.sparse_compressed_tensor(rows, cols, vals, layout=torch.sparse_csr)
+        S = S.to_dense()
+
+        print("ORIG SHAPE")
+        print(S.shape)
+        print(self.infeatures)
+        print(self.infeatures - S.shape[-1])
+
+        S = torch.nn.functional.pad(
+            S, pad=(0, self.infeatures - S.shape[-1]), mode="constant", value=0
+        )
+
+        # remove CSR params
+        del self.rows
+        del self.cols
+        del self.vals
+
+        # reconstruct
+        if prev_topX > 0:
+            full_rows = self.full_rows
+            full_row_indices = self.full_row_indices
+            S[full_row_indices] = full_rows.t()
+            # destroy previous full_rows/full_row_indices
+            del full_rows
+            del full_row_indices
+
+        if new_topX > 0:
+            nonzeros_per_row = torch.count_nonzero(S, dim=-1)
+            vals, indices = torch.topk(nonzeros_per_row, new_topX)
+            indices, _ = indices.sort()
+            full_rows = S[indices].clone().float().t().contiguous()
+            S[indices] = 0
+            S = S.float()
+            self.register_buffer("full_rows", full_rows)
+            self.register_buffer("full_row_indices", indices.to(torch.int32))
+        self.topX = new_topX
+
+        # convert to CSR
+        S = S.to_sparse(layout=torch.sparse_csr)
+
+        # self.register_buffer('sparse_matrix', S)
+        self.register_buffer("rows", S.crow_indices().to(torch.int32))
+        self.register_buffer("cols", S.col_indices().to(torch.int32))
+        self.register_buffer("vals", S.values().to(torch.float32))
+
     # replacement forward pass
     def forward(self, x):
         if x.shape[-1] == x.numel():
@@ -192,10 +277,7 @@ class QuantLinearLUT(nn.Module):
                     )
                 else:
                     quant_cuda.vecquant3matmul_nuq_perchannel(
-                        x,
-                        self.qweight,
-                        y,
-                        self.lookup_table,
+                        x, self.qweight, y, self.lookup_table
                     )
             elif self.bits == 4:
                 x = x.float()
@@ -264,10 +346,7 @@ class QuantLinearLUT(nn.Module):
                     )
                 else:
                     quant_cuda.vecquant3matmul_nuq_perchannel_batched(
-                        x,
-                        self.qweight,
-                        out,
-                        self.lookup_table,
+                        x, self.qweight, out, self.lookup_table
                     )
             elif self.bits == 4:
                 x = x.float()
@@ -297,10 +376,7 @@ class QuantLinearLUT(nn.Module):
                     )
                 else:
                     quant_cuda.vecquant4matmul_nuq_perchannel_batched(
-                        x,
-                        self.qweight,
-                        out,
-                        self.lookup_table,
+                        x, self.qweight, out, self.lookup_table
                     )
             out = out.to(dtype)
             out = out.reshape(out_shape)
@@ -308,7 +384,6 @@ class QuantLinearLUT(nn.Module):
             return out
 
 
-# function to iterate through model layers and replace with our LUT-based layer
 def make_quant_lut(
     module, names, bits, name="", include_sparse=False, numvals=None, topX=0
 ):
@@ -317,26 +392,26 @@ def make_quant_lut(
     for attr in dir(module):
         tmp = getattr(module, attr)
         name1 = name + "." + attr if name != "" else attr
-        if name1 not in names:
-            continue
-        num = 0
-        if numvals:
-            num = getattr(numvals[name1])
-        delattr(module, attr)
-        setattr(
-            module,
-            attr,
-            QuantLinearLUT(
-                bits,
-                tmp.in_features,
-                tmp.out_features,
-                tmp.bias is not None,
-                include_sparse=include_sparse,
-                numvals=num,
-                topX=topX,
-            ),
-        )
-
+        if name1 in names:
+            if numvals is not None:
+                print("name1 ", name1)
+                num = numvals[name1]
+            else:
+                num = 0
+            delattr(module, attr)
+            setattr(
+                module,
+                attr,
+                QuantLinearLUT(
+                    bits,
+                    tmp.in_features,
+                    tmp.out_features,
+                    tmp.bias is not None,
+                    include_sparse=include_sparse,
+                    numvals=num,
+                    topX=topX,
+                ),
+            )
     for name1, child in module.named_children():
         make_quant_lut(
             child,
