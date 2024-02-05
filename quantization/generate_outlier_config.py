@@ -72,6 +72,10 @@ if not os.path.exists(outlier_folder):
     os.makedirs(outlier_folder)
 
 o = round(outlier_percentage, 2)
+json_data = {
+    "outlier_threshold": o,
+    "outlier_config": json_data,
+}
 
 with open(f"{outlier_folder}/outlier_config_o{o}.json", "w") as f:
     json.dump(json_data, f, indent=4)
