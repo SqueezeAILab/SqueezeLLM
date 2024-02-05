@@ -1,28 +1,27 @@
 import argparse
 import os
-import torch
-from tqdm import tqdm
 
+import torch
 from squeezellm.model_parse import (
-    parse_model,
     get_layers,
-    get_modules,
     get_module_names,
+    get_modules,
     load_model,
+    parse_model,
 )
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '--output_path', type=str, default=None,
-    help="chunk the model and store"
+    "--output_path", type=str, default=None, help="chunk the model and store"
 )
+parser.add_argument("--model", type=str, help="model to load")
 parser.add_argument(
-    '--model', type=str,
-    help='model to load'
-)
-parser.add_argument(
-    '--model_type', type=str, default=None,
-    help='model type', choices=['llama', 'opt', 'mistral']
+    "--model_type",
+    type=str,
+    default=None,
+    help="model type",
+    choices=["llama", "opt", "mistral"],
 )
 
 args = parser.parse_args()
