@@ -63,7 +63,6 @@ class QuantLinearLUT(nn.Module):
         self.include_sparse = include_sparse
         self.numvals = numvals
         self.topX = topX
-        print("numvals: ", numvals)
         if numvals > 0:
             self.register_buffer(
                 "rows", torch.zeros(outfeatures + 1, dtype=torch.int32)
