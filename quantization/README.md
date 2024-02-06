@@ -30,7 +30,25 @@ python chunk_models.py --model [GRADIENT_PATH] --output [GRADIENT_CHUNKS_PATH] -
 
 This will save model weights and gradients in the layer granularity as `[MODEL_CHUNKS_PATH]` and `[GRADIENT_CHUNKS_PATH]`.
 
-### 3. K-means clustering
+### 3. (Optional for D+S quantization) Outlier configuration generation
+This is an optional step to generate an outlier configuration for the Dense-and-Sparse quantization.
+This step creates a configuration file that defines thresholds for identifying outlier values in the weights.
+Note that while SqueezeLLM extracts both outliers and sensitive values to sparse matrices, 
+there's no need for a separate configuration step for sensitive values -- this is covered in step 4.
+This step only generates a configuration of outlier values.
+
+Run the following command to generate an outlier configuration:
+```
+python generate_outlier_config.py --model [MODEL_CHUNKS_PATH] --range [RANGE] --output [OUTLIERS_CONFIG_PATH]
+```
+
+* `--model`: Points to the chunked model weights obtained in the previous step
+* `--range`: Determines the thresholds T_min and T_max as described in Section 4.2 of the paper. Adjusting this value changes the absolute values of T_min and T_max, consequently affecting the total number of outliers. A larger range value decreases the number of outliers.
+* `--output`: The path where the outlier configuration will be saved, formatted as `[OUTLIERS_CONFIG_PATH]/outlier_config_o{outlier_percentage}.json`, where outlier_percentage represents the percentage of values classified as outliers. You will need to fine-tune the `range` argument to achieve a desired outlier percentage, with 1.5-2.0 being a recommended starting range.
+
+
+
+### 4. K-means clustering
 Run the following code to perform K-means clustering, which will yield the non-uniform quantization look-up table (LUT):
 ```
 python nuq.py --bit 4 --model_type llama --model [MODEL_CHUNKS_PATH] --gradient [GRADIENT_CHUNKS_PATH] --output [LUT_PATH]
@@ -43,6 +61,17 @@ To only quantize a specific range of layers, you can use the `--range` option. F
 
 Please note that this process is highly CPU-intensive, so it is recommended to run the code in environments with multiple and stronger CPU cores for faster computation.
 
+**Additional arguments for D+S quantization:**
+To perform Dense-and-Sparse quantization, e.g. with 0.45% outliers and 0.05% sensitive values as in the paper, you will first need to generate an outlier configuration file for 0.45% outliers by completing step 3. This file will be stored as `[OUTLIERS_CONFIG_PATH]/outlier_config_o0.45.json`.
+Then, run the following command:
+```
+python nuq.py --bit 4 --model_type llama --model [MODEL_CHUNKS_PATH] --gradient [GRADIENT_CHUNKS_PATH] --output [LUT_PATH] --outlier_config [OUTLIERS_CONFIG_PATH]/outlier_config_o0.45.json --sensitivity 0.05
+```
+* `--outlier_config`: reads the outlier configuration file generated in the previous step to extract 0.45% of the outliers to the sparse matrices accordingly.
+* `--sensitivity`: takes out an additional 0.05% of sensitive values to the sparse matrices. 
+
+
+
 ### 4. Packing
 Finally, use the obtained LUT from the previous step to save your model into a packed format. Run the following command:
 ```
@@ -50,3 +79,11 @@ python pack.py --model [MODEL_PATH] --wbits 4 --folder [LUT_PATH] --save [PACKED
 ```
 `[MODEL_PATH]` is the original model checkpoint, and `[LUT_PATH]` is the location where the LUT is stored from the previous step. 
 The packed checkpoint will be saved at `[PACKED_CKPT_PATH]`, which can now be immediately used in your inference code.
+
+**Additional arguments for D+S packing:**
+When you performed D+S quantization in the previous step, you will obtain the outliers file as well as LUT in `[LUT_PATH]`.
+In this case, you will need to  proceed with D+S packing using the following command:
+```
+python pack.py --model [MODEL_PATH] --wbits 4 --folder [LUT_PATH] --save [PACKED_CKPT_PATH] --include_sparse --balance
+```
+This command incorporates two additional arguments, `--include_sparse` and `--balance`.
