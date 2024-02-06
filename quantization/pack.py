@@ -63,8 +63,6 @@ def llama_pack(
     wbits,
     include_sparse,
     balanced,
-    rowfactor,
-    use_num_nonzeros,
     num_nonzero_per_thread,
 ):
     layers = find_layers(model)
@@ -75,8 +73,6 @@ def llama_pack(
         wbits,
         include_sparse=include_sparse,
         balanced=balanced,
-        rowfactor=rowfactor,
-        use_num_nonzeros=use_num_nonzeros,
     )
 
     qlayers = find_layers(model, [QuantLinearLUT])
@@ -141,21 +137,12 @@ if __name__ == "__main__":
         help='Whether to use balanced sparse kernel.'
     )
     parser.add_argument(
-        '--rowfactor', type=int, default=4,
-        help='Threads per row in matrix.'
-    )
-    parser.add_argument(
-        '--use_num_nonzeros', action='store_true',
-        help='Whether to use num nonzeros to decide how many threads to assign instead of rowfactor.'
-    )
-    parser.add_argument(
-        '--num_nonzero_per_thread', type=int, default=50,
+        '--num_nonzero_per_thread', type=int, default=10,
         help='Num nonzeros assigned to each thread.'
     )
 
 
     args = parser.parse_args()
-    assert not args.include_sparse, "Sparse not supported yet"
 
     model = transformers.AutoModelForCausalLM.from_pretrained(
         args.model, trust_remote_code=True, torch_dtype="auto"
@@ -179,8 +166,6 @@ if __name__ == "__main__":
         wbits=args.wbits,
         include_sparse=args.include_sparse,
         balanced=args.balanced,
-        rowfactor=args.rowfactor,
-        use_num_nonzeros=args.use_num_nonzeros,
         num_nonzero_per_thread=args.num_nonzero_per_thread,
     )
     print("llama_pack Done:", time.time() - tick)

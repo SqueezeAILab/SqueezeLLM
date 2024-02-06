@@ -24,41 +24,6 @@ def round_to_nearest_pole_sim(w, poles):
     return aug
 
 
-def dense_plus_sparse(w, poles, thresh=0.99, per_channel=False):
-    """
-    w: weight values (1d vector)
-    poles: tuple of values
-    thresh: outlier threshold
-    per_channel - whether LUT is per-channel
-
-    Remove outliers for sparse matrix and then
-    round the numbers in w to the nearest value in poles.
-    """
-    outlier_threshold = torch.quantile(torch.abs(w), thresh)
-    outliers = (torch.abs(w) > outlier_threshold).float()
-    D = w * (1 - outliers)  # dense tensor (before quantization)
-
-    Q = []
-    zero_mappings = []
-    for i in range(w.shape[0]):
-        if per_channel:
-            p = poles[i]
-        else:
-            p = poles
-        Q.append(round_to_nearest_pole_sim(D[i], p))
-        # when we zero out the outliers, they are mapped the nearest-to-zero pole, not zero
-        # we need to keep track of this mapping so we can subtract it later
-        zero_mappings.append(round_to_nearest_pole_sim(torch.zeros(1), p))
-    Q = torch.stack(Q)  # dense tensor (after non-uniform quantization)
-    zero_mappings = torch.stack(zero_mappings)
-
-    delta = zero_mappings * outliers
-    S = w * outliers
-    S = S - delta  # sparse tensor
-
-    return Q, S
-
-
 # drop-in layer replacement class
 class QuantLinearLUT(nn.Module):
     def __init__(
@@ -71,9 +36,7 @@ class QuantLinearLUT(nn.Module):
         numvals=0,
         topX=0,
         balanced=False,
-        rowfactor=4,
-        use_num_nonzeros=False,
-        num_nonzero_per_thread=50,
+        num_nonzero_per_thread=10,
     ):
         super().__init__()
         if bits not in [3, 4]:
@@ -100,6 +63,7 @@ class QuantLinearLUT(nn.Module):
         self.include_sparse = include_sparse
         self.numvals = numvals
         self.topX = topX
+        print("numvals: ", numvals)
         if numvals > 0:
             self.register_buffer(
                 "rows", torch.zeros(outfeatures + 1, dtype=torch.int32)
@@ -117,9 +81,8 @@ class QuantLinearLUT(nn.Module):
             )
 
         self.balanced = balanced
-        self.use_num_nonzeros = use_num_nonzeros
 
-        if include_sparse and balanced and numvals > 0 and use_num_nonzeros:
+        if include_sparse and balanced and numvals > 0:
             print("use num_nonzero_per_thread")
             self.num_threads = int(
                 (numvals + num_nonzero_per_thread - 1) / num_nonzero_per_thread
@@ -127,13 +90,6 @@ class QuantLinearLUT(nn.Module):
             self.num_threads = 128 * math.ceil(
                 self.num_threads / 128
             )  # round up to nearest factor of blocksize = 128
-            self.register_buffer(
-                "startrows", torch.zeros(self.num_threads, dtype=torch.int32)
-            )
-            print("self.num_threads : ", self.num_threads)
-        elif include_sparse and balanced:  # use rowfactor
-            print("use rowfactor")
-            self.num_threads = rowfactor * outfeatures
             self.register_buffer(
                 "startrows", torch.zeros(self.num_threads, dtype=torch.int32)
             )
@@ -181,14 +137,13 @@ class QuantLinearLUT(nn.Module):
                 print("self.numvals: ", self.numvals)
                 print("self.rows: ", self.rows.shape[0])
 
-                if self.use_num_nonzeros:
-                    self.num_threads = int(
-                        (self.numvals + num_nonzero_per_thread - 1)
-                        / num_nonzero_per_thread
-                    )
-                    self.num_threads = 128 * math.ceil(
-                        self.num_threads / 128
-                    )  # round up to nearest factor of blocksize = 128
+                self.num_threads = int(
+                    (self.numvals + num_nonzero_per_thread - 1)
+                    / num_nonzero_per_thread
+                )
+                self.num_threads = 128 * math.ceil(
+                    self.num_threads / 128
+                )  # round up to nearest factor of blocksize = 128
 
                 nnz_per_thread = int(
                     (self.numvals + self.num_threads - 1) / self.num_threads
@@ -438,9 +393,7 @@ def make_quant_lut(
     numvals=None,
     topX=0,
     balanced=False,
-    rowfactor=4,
-    use_num_nonzeros=False,
-    num_nonzero_per_thread=50,
+    num_nonzero_per_thread=10,
 ):
     if isinstance(module, QuantLinearLUT):
         return
@@ -466,8 +419,6 @@ def make_quant_lut(
                     numvals=num,
                     topX=topX,
                     balanced=balanced,
-                    rowfactor=rowfactor,
-                    use_num_nonzeros=use_num_nonzeros,
                     num_nonzero_per_thread=num_nonzero_per_thread,
                 ),
             )
@@ -481,7 +432,5 @@ def make_quant_lut(
             numvals=numvals,
             topX=topX,
             balanced=balanced,
-            rowfactor=rowfactor,
-            use_num_nonzeros=use_num_nonzeros,
             num_nonzero_per_thread=num_nonzero_per_thread,
         )
