@@ -1,7 +1,6 @@
 from transformers import AutoModelForCausalLM, LlamaForCausalLM, OPTForCausalLM
 
 
-
 def load_model(model, model_type, cache_dir=None):
     if model_type == "opt":
         model = OPTForCausalLM.from_pretrained(

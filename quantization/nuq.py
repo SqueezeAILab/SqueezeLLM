@@ -1,16 +1,14 @@
 import argparse
+import json
 import os
 import pickle
 
 import numpy as np
-import json
 import torch
 from sklearn.cluster import KMeans
 from squeezellm.model_parse import get_module_names, parse_model
-from tqdm import tqdm
-
-from squeezellm.model_parse import parse_model, get_module_names
 from squeezellm.outliers import remove_outliers
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 
