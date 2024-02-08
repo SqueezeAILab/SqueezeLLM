@@ -1,6 +1,8 @@
+import os
+os.environ["OMP_NUM_THREADS"] = "1"  # this is necessary to parallelize the kmeans
+
 import argparse
 import json
-import os
 import pickle
 
 import numpy as np
@@ -9,6 +11,7 @@ from sklearn.cluster import KMeans
 from squeezellm.model_parse import get_module_names, parse_model
 from squeezellm.outliers import remove_outliers
 from tqdm import tqdm
+from multiprocessing import Pool
 
 parser = argparse.ArgumentParser()
 
@@ -41,6 +44,18 @@ parser.add_argument(
 parser.add_argument(
     "--sensitivity", type=float, default=0, help="sensitivity for outlier extraction"
 )
+
+
+# Define the helper function for parallel k-means
+def kmeans_fit(row_data):
+    weights_np, sample_weight, n_cluster = row_data
+    kmeans = KMeans(
+        n_clusters=n_cluster,
+        random_state=0,
+        n_init="auto",
+        max_iter=50,
+    ).fit(weights_np, sample_weight=sample_weight)
+    return kmeans.cluster_centers_.reshape(-1), np.cast["byte"](kmeans.labels_)
 
 
 if __name__ == "__main__":
@@ -99,6 +114,8 @@ if __name__ == "__main__":
 
     print(f"Quantizing layers {ran}")
 
+    pool = Pool(os.cpu_count())
+
     for l in ran:
         if ran is not None and l not in ran:
             print(f"Skipping layer {l}")
@@ -141,46 +158,37 @@ if __name__ == "__main__":
 
         config_per_layer = {}
 
-        for name in tqdm(get_module_names(model_type)):
+        # Prepare data for parallel execution
+        kmeans_tasks = []
+        for name in get_module_names(model_type):
             g = gradient_layer[name].float().numpy()
-
-            config_per_row = []
             module_weight = model_layer[name]
             _weights_np = module_weight.float().numpy()
-
             n_cluster = 2**args.bit
 
-            # iterate over row
             for i in range(module_weight.shape[0]):
-                config_per_group = []
                 weights_np_temp = _weights_np[i, :]
                 weights_np = weights_np_temp.reshape(-1, 1)
-
                 weight_mask = weights_np_temp != 0
-                sample_weight = g[i, :]
-                sample_weight = sample_weight * weight_mask
-
+                sample_weight = g[i, :] * weight_mask
                 if np.sum(sample_weight) == 0:
                     sample_weight = np.ones_like(sample_weight)
+                kmeans_tasks.append((weights_np, sample_weight, n_cluster))
 
-                kmeans = KMeans(
-                    n_clusters=n_cluster,
-                    random_state=0,
-                    n_init="auto",
-                    max_iter=50,
-                ).fit(
-                    weights_np,
-                    sample_weight=sample_weight,
-                )
-                config_per_group.append(
-                    (
-                        kmeans.cluster_centers_.reshape(-1),
-                        np.cast["byte"](kmeans.labels_),
-                    )
-                )
-                config_per_row.append(config_per_group)
+        # Parallel execution using Pool
+        kmeans_results = list(tqdm(pool.imap(kmeans_fit, kmeans_tasks), total=len(kmeans_tasks)))
 
+        # Organize results
+        task_idx = 0
+        for name in get_module_names(model_type):
+            config_per_row = []
+            module_weight = model_layer[name]
+            for i in range(module_weight.shape[0]):
+                centers, labels = kmeans_results[task_idx]
+                task_idx += 1
+                config_per_row.append([(centers, labels)])
             config_per_layer[name] = config_per_row
+
 
         # save parts
         with open(lut_file_name, "wb") as f:
@@ -192,3 +200,7 @@ if __name__ == "__main__":
                 print(f"Saving layer outliers to {outlier_folder}/l{l}.pkl")
                 # take the first item (since it is a list of length 1)
                 pickle.dump([x.to_sparse() for x in outliers[0]], f)
+    
+    pool.close()
+    pool.join()
+
