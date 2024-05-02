@@ -1,4 +1,4 @@
-# SqueezeLLM: Dense-and-Sparse Quantization [[Paper](https://arxiv.org/abs/2306.07629)]
+# [ICML'24] SqueezeLLM: Dense-and-Sparse Quantization [[Paper](https://arxiv.org/abs/2306.07629)]
 
 ![Thumbnail](figs/thumbnail.png)
 
