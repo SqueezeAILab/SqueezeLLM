@@ -1,17 +1,15 @@
 import os
-os.environ["OMP_NUM_THREADS"] = "1"  # this is necessary to parallelize the kmeans
-
 import argparse
 import json
 import pickle
 
 import numpy as np
 import torch
-from sklearn.cluster import KMeans
 from squeezellm.model_parse import get_module_names, parse_model
 from squeezellm.outliers import remove_outliers
 from tqdm import tqdm
 from multiprocessing import Pool
+import flash1dkmeans
 
 parser = argparse.ArgumentParser()
 
@@ -49,13 +47,22 @@ parser.add_argument(
 # Define the helper function for parallel k-means
 def kmeans_fit(row_data):
     weights_np, sample_weight, n_cluster = row_data
-    kmeans = KMeans(
-        n_clusters=n_cluster,
-        random_state=0,
-        n_init="auto",
-        max_iter=50,
-    ).fit(weights_np, sample_weight=sample_weight)
-    return kmeans.cluster_centers_.reshape(-1), np.cast["byte"](kmeans.labels_)
+    if n_cluster > 2:
+        centers, labels = flash1dkmeans.kmeans_1d(
+            X=weights_np,
+            n_clusters=n_cluster,
+            sample_weights=sample_weight,
+            random_state=0,
+            max_iter=50,
+        )
+    else:
+        # When n_cluster is 2, random_state and max_iter are not used
+        centers, labels = flash1dkmeans.kmeans_1d(
+            X=weights_np,
+            n_clusters=n_cluster,
+            sample_weights=sample_weight,
+        )
+    return centers, np.cast["byte"](labels)
 
 
 if __name__ == "__main__":
@@ -167,9 +174,8 @@ if __name__ == "__main__":
             n_cluster = 2**args.bit
 
             for i in range(module_weight.shape[0]):
-                weights_np_temp = _weights_np[i, :]
-                weights_np = weights_np_temp.reshape(-1, 1)
-                weight_mask = weights_np_temp != 0
+                weights_np = _weights_np[i, :]
+                weight_mask = weights_np != 0
                 sample_weight = g[i, :] * weight_mask
                 if np.sum(sample_weight) == 0:
                     sample_weight = np.ones_like(sample_weight)

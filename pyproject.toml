@@ -18,7 +18,8 @@ dependencies = [
     "tokenizers>=0.12.1",
     "torch",
     "transformers==4.29.0",
-    "datasets"
+    "datasets",
+    "flash1dkmeans==0.1.4",
 ]
 
 [tool.setuptools.packages.find]
