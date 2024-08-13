@@ -35,6 +35,7 @@ __device__ double atomicAdd(
 #endif
 
 const int BLOCKWIDTH  = 128;
+const int BLOCKHEIGHT2 =  8;
 const int BLOCKHEIGHT3 =  12;
 const int BLOCKHEIGHT4 =  16;
 
@@ -45,6 +46,15 @@ __device__ inline unsigned int as_unsigned(int i) {
 __device__ inline int as_int(int i) {
   return *reinterpret_cast<int*>(&i);
 }
+
+__global__ void VecQuant2MatMulKernelNUQPerChannel(
+    const  float* __restrict__ vec,
+    const    int* __restrict__ mat,
+           float* __restrict__ mul,
+    const  float* __restrict__ lookup_table,
+    int height,
+    int width
+);
 
 __global__ void VecQuant3MatMulKernelNUQPerChannel(
     const  float* __restrict__ vec,
@@ -62,6 +72,17 @@ __global__ void VecQuant4MatMulKernelNUQPerChannel(
     const  float* __restrict__ lookup_table,
     int height,
     int width
+);
+
+__global__ void VecQuant2MatMulKernelNUQPerChannelBatched(
+    const  float* __restrict__ vec,
+    const    int* __restrict__ mat,
+           float* __restrict__ mul,
+    const  float* __restrict__ lookup_table,
+    int height,
+    int width,
+    int batch,
+    int vec_height
 );
 
 __global__ void VecQuant3MatMulKernelNUQPerChannelBatched(
@@ -129,6 +150,31 @@ __global__ void DenseMatVecKernelBatched(
     int matwidth
 );
 
+
+void vecquant2matmul_nuq_perchannel_cuda(
+  torch::Tensor vec,
+  torch::Tensor mat,
+  torch::Tensor mul,
+  torch::Tensor lookup_table
+) {
+  int height = mat.size(0);
+  int width = mat.size(1);
+
+  dim3 blocks(
+    (height + BLOCKHEIGHT2 - 1) / BLOCKHEIGHT2,
+    (width + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads(BLOCKWIDTH);
+
+  VecQuant2MatMulKernelNUQPerChannel<<<blocks, threads>>>(
+    vec.data_ptr<float>(),
+    mat.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height, width
+  );
+}
+
 void vecquant3matmul_nuq_perchannel_cuda(
   torch::Tensor vec,
   torch::Tensor mat,
@@ -175,6 +221,34 @@ void vecquant4matmul_nuq_perchannel_cuda(
     mul.data_ptr<float>(),
     lookup_table.data_ptr<float>(),
     height, width
+  );
+}
+
+// 2-bit batched matvec kernel (LUT-based)
+void vecquant2matmul_nuq_perchannel_batched_cuda(
+  torch::Tensor vec,
+  torch::Tensor mat,
+  torch::Tensor mul,
+  torch::Tensor lookup_table
+) {
+  int height = mat.size(0);
+  int width = mat.size(1);
+
+  int batch = vec.size(0);
+  int vec_height = vec.size(1);
+
+  dim3 blocks(
+    (height + BLOCKHEIGHT2 - 1) / BLOCKHEIGHT2,
+    (width + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads(BLOCKWIDTH);
+
+  VecQuant2MatMulKernelNUQPerChannelBatched<<<blocks, threads>>>(
+    vec.data_ptr<float>(),
+    mat.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height, width, batch, vec_height
   );
 }
 
@@ -231,6 +305,53 @@ void vecquant4matmul_nuq_perchannel_batched_cuda(
     mul.data_ptr<float>(),
     lookup_table.data_ptr<float>(),
     height, width, batch, vec_height
+  );
+}
+
+
+//NUQ + Sparse (2-bit)
+void vecquant2matmul_spmv_nuq_perchannel_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat2,
+  torch::Tensor lookup_table
+) {
+
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  int height2 = mat2.size(0);
+  int width2 = mat2.size(1);
+
+  dim3 blocks2(
+    (height2 + BLOCKHEIGHT2 - 1) / BLOCKHEIGHT2,
+    (width2 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads2(BLOCKWIDTH);
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic", ([&] {
+      SPMV_ATOMIC<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows
+      );
+    })
+  );
+
+  VecQuant2MatMulKernelNUQPerChannel<<<blocks2, threads2>>>(
+    vec.data_ptr<float>(),
+    mat2.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height2, width2
   );
 }
 
@@ -323,6 +444,60 @@ void vecquant4matmul_spmv_nuq_perchannel_cuda(
     mul.data_ptr<float>(),
     lookup_table.data_ptr<float>(),
     height4, width4
+  );
+}
+
+
+//NUQ + Sparse (2-bit)
+void vecquant2matmul_spmv_nuq_perchannel_batched_cuda(
+  torch::Tensor rows,
+  torch::Tensor cols,
+  torch::Tensor mat,
+  torch::Tensor vec,
+  torch::Tensor mul,
+  int num_rows,
+  torch::Tensor mat2,
+  torch::Tensor lookup_table
+) {
+
+  // dense kernel
+  int height2 = mat2.size(0);
+  int width2 = mat2.size(1);
+
+  int batch = vec.size(0);
+  int vec_height = vec.size(1);
+
+  dim3 blocks2(
+    (height2 + BLOCKHEIGHT2 - 1) / BLOCKHEIGHT2,
+    (width2 + BLOCKWIDTH - 1) / BLOCKWIDTH
+  );
+  dim3 threads2(BLOCKWIDTH);
+
+  VecQuant2MatMulKernelNUQPerChannelBatched<<<blocks2, threads2>>>(
+    vec.data_ptr<float>(),
+    mat2.data_ptr<int>(),
+    mul.data_ptr<float>(),
+    lookup_table.data_ptr<float>(),
+    height2, width2, batch, vec_height
+  );
+
+  //spmv kernel
+  int block_size = BLOCKWIDTH;
+  int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
+
+  AT_DISPATCH_FLOATING_TYPES(
+    mat.type(), "spmv_atomic_batched", ([&] {
+      SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
+        rows.data<int>(),
+        cols.data<int>(),
+        mat.data<scalar_t>(),
+        vec.data<scalar_t>(),
+        mul.data<scalar_t>(),
+        num_rows,
+        batch,
+        vec_height
+      );
+    })
   );
 }
 
@@ -738,6 +913,67 @@ void vecquant4matmul_spmv_hybrid_nuq_perchannel_batched_cuda(
 }
 
 
+__global__ void VecQuant2MatMulKernelNUQPerChannel(
+    const  float* __restrict__ vec,
+    const    int* __restrict__ mat,
+           float* __restrict__ mul,
+    const  float* __restrict__ lookup_table,
+    int height,
+    int width
+) {
+
+  int row = BLOCKHEIGHT2 * blockIdx.x;
+  // output channel index
+  int col = BLOCKWIDTH * blockIdx.y + threadIdx.x;
+
+  __shared__ float blockvec[BLOCKWIDTH];
+  blockvec[threadIdx.x] = vec[(row / BLOCKHEIGHT2) * BLOCKWIDTH + threadIdx.x];
+
+  // Modified dequant block
+  __shared__ float deq2[4][BLOCKWIDTH];
+  int off = threadIdx.x;
+  int column_offset = col * 4;
+  for (int val = 0; val < 4; val += 1) {
+    int lut_index = column_offset + (val & 0xf);
+    deq2[val][off] = lookup_table[lut_index];
+  }
+
+  __syncthreads();
+
+  float res = 0;
+  int i = width * row + col;
+  int k = 0;
+
+  unsigned int tmp;
+
+  while (k < BLOCKWIDTH) {
+    tmp = as_unsigned(mat[i]);
+
+    res += deq2[(tmp >>  0) & 0x3][off] * blockvec[k + 0];
+    res += deq2[(tmp >>  2) & 0x3][off] * blockvec[k + 1];
+    res += deq2[(tmp >>  4) & 0x3][off] * blockvec[k + 2];
+    res += deq2[(tmp >>  6) & 0x3][off] * blockvec[k + 3];
+    res += deq2[(tmp >>  8) & 0x3][off] * blockvec[k + 4];
+    res += deq2[(tmp >>  10) & 0x3][off] * blockvec[k + 5];
+    res += deq2[(tmp >>  12) & 0x3][off] * blockvec[k + 6];
+    res += deq2[(tmp >>  14) & 0x3][off] * blockvec[k + 7];
+    res += deq2[(tmp >>  16) & 0x3][off] * blockvec[k + 8];
+    res += deq2[(tmp >>  18) & 0x3][off] * blockvec[k + 9];
+    res += deq2[(tmp >>  20) & 0x3][off] * blockvec[k + 10];
+    res += deq2[(tmp >>  22) & 0x3][off] * blockvec[k + 11];
+    res += deq2[(tmp >>  24) & 0x3][off] * blockvec[k + 12];
+    res += deq2[(tmp >>  26) & 0x3][off] * blockvec[k + 13];
+    res += deq2[(tmp >>  28) & 0x3][off] * blockvec[k + 14];
+    res += deq2[(tmp >>  30) & 0x3][off] * blockvec[k + 15];
+
+    i += width;
+    k += 16;
+  }
+
+  atomicAdd(&mul[col], res);
+}
+
+
 __global__ void VecQuant3MatMulKernelNUQPerChannel(
     const  float* __restrict__ vec,
     const    int* __restrict__ mat,
@@ -877,6 +1113,75 @@ __global__ void VecQuant4MatMulKernelNUQPerChannel(
   }
 
   atomicAdd(&mul[col], res);
+}
+
+
+//batched version (2-bit)
+__global__ void VecQuant2MatMulKernelNUQPerChannelBatched(
+    const  float* __restrict__ vec,
+    const    int* __restrict__ mat,
+           float* __restrict__ mul,
+    const  float* __restrict__ lookup_table,
+    int height,
+    int width,
+    int batch,
+    int vec_height
+) {
+
+  int row = BLOCKHEIGHT2 * blockIdx.x;
+  int col = BLOCKWIDTH * blockIdx.y + threadIdx.x;
+  __shared__ float blockvec[BLOCKWIDTH];
+
+  //Modified dequant block
+  __shared__ float deq2[4][BLOCKWIDTH];
+  int off = threadIdx.x;
+  int column_offset = col * 4;
+  for (int val = 0; val < 4; val += 1) {
+    int lut_index = column_offset + (val & 0xf);
+    deq2[val][off] = lookup_table[lut_index];
+  }
+
+  int i;
+  float res;
+  int k;
+  unsigned int tmp;
+
+  for (int b = 0; b < batch; ++b){
+    i = width * row + col;
+    res = 0;
+    k = 0;
+
+    __syncthreads();
+    blockvec[threadIdx.x] = vec[b * vec_height + (row / BLOCKHEIGHT2) * BLOCKWIDTH + threadIdx.x];
+    __syncthreads();
+
+    while (k < BLOCKWIDTH) {
+      tmp = as_unsigned(mat[i]);
+
+      res += deq2[(tmp >>  0) & 0x3][off] * blockvec[k + 0];
+      res += deq2[(tmp >>  2) & 0x3][off] * blockvec[k + 1];
+      res += deq2[(tmp >>  4) & 0x3][off] * blockvec[k + 2];
+      res += deq2[(tmp >>  6) & 0x3][off] * blockvec[k + 3];
+      res += deq2[(tmp >>  8) & 0x3][off] * blockvec[k + 4];
+      res += deq2[(tmp >>  10) & 0x3][off] * blockvec[k + 5];
+      res += deq2[(tmp >>  12) & 0x3][off] * blockvec[k + 6];
+      res += deq2[(tmp >>  14) & 0x3][off] * blockvec[k + 7];
+
+      res += deq2[(tmp >>  16) & 0x3][off] * blockvec[k + 8];
+      res += deq2[(tmp >>  18) & 0x3][off] * blockvec[k + 9];
+      res += deq2[(tmp >>  20) & 0x3][off] * blockvec[k + 10];
+      res += deq2[(tmp >>  22) & 0x3][off] * blockvec[k + 11];
+      res += deq2[(tmp >>  24) & 0x3][off] * blockvec[k + 12];
+      res += deq2[(tmp >>  26) & 0x3][off] * blockvec[k + 13];
+      res += deq2[(tmp >>  28) & 0x3][off] * blockvec[k + 14];
+      res += deq2[(tmp >>  30) & 0x3][off] * blockvec[k + 15];
+
+      i += width;
+      k += 16;
+    }
+
+    atomicAdd(&mul[b * width + col], res);
+  }
 }
 
 

@@ -27,7 +27,7 @@ parser.add_argument(
     type=int,
     default=3,
     help="bitwidth",
-    choices=[3, 4],
+    choices=[2, 3, 4],
 )
 parser.add_argument(
     "--range", type=str, default=None, help="range of layers to quantize"

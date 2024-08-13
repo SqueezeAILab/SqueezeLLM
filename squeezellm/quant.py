@@ -39,8 +39,8 @@ class QuantLinearLUT(nn.Module):
         num_nonzero_per_thread=10,
     ):
         super().__init__()
-        if bits not in [3, 4]:
-            raise NotImplementedError("Only 3 and 4 bits is supported.")
+        if bits not in [2, 3, 4]:
+            raise NotImplementedError("Only 2, 3, and 4 bits is supported.")
         self.infeatures = infeatures
         self.outfeatures = outfeatures
         self.bits = bits
@@ -219,7 +219,24 @@ class QuantLinearLUT(nn.Module):
                 outshape[-1] = self.outfeatures
             dtype = x.dtype
 
-            if self.bits == 3:
+            if self.bits == 2:
+                x = x.float()
+                if self.include_sparse:
+                    quant_cuda.vecquant2matmul_spmv_nuq_perchannel(
+                        self.rows,
+                        self.cols,
+                        self.vals,
+                        x,
+                        y,
+                        self.outfeatures,
+                        self.qweight,
+                        self.lookup_table,
+                    )
+                else:
+                    quant_cuda.vecquant2matmul_nuq_perchannel(
+                        x, self.qweight, y, self.lookup_table
+                    )
+            elif self.bits == 3:
                 x = x.float()
                 if self.include_sparse and self.topX > 0:
                     quant_cuda.vecquant3matmul_spmv_hybrid_nuq_perchannel(
@@ -317,7 +334,24 @@ class QuantLinearLUT(nn.Module):
                 (x.shape[0], self.outfeatures), device="cuda", dtype=torch.float32
             )
             dtype = x.dtype
-            if self.bits == 3:
+            if self.bits == 2:
+                x = x.float()
+                if self.include_sparse:
+                    quant_cuda.vecquant2matmul_spmv_nuq_perchannel_batched(
+                        self.rows,
+                        self.cols,
+                        self.vals,
+                        x,
+                        out,
+                        self.outfeatures,
+                        self.qweight,
+                        self.lookup_table,
+                    )
+                else:
+                    quant_cuda.vecquant2matmul_nuq_perchannel_batched(
+                        x, self.qweight, out, self.lookup_table
+                    )
+            elif self.bits == 3:
                 x = x.float()
                 if self.include_sparse and self.topX > 0:
                     quant_cuda.vecquant3matmul_spmv_hybrid_nuq_perchannel_batched(
