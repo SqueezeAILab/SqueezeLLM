@@ -12,8 +12,13 @@ from squeezellm.model_parse import (
     get_embedding,
     get_norm,
 )
-
-
+try:
+    import intel_extension_for_pytorch
+    def is_xpu_available():
+        return  torch.xpu.is_available()
+except Exception as e:
+    print(f"Building SYCL kernels requires either Pytorch>=2.4 or installation of IPEX to run on Intel GPUs")
+    
 def get_model(model):
     import torch
 
@@ -78,7 +83,10 @@ def llama_eval(model, testenc, dev):
     layers[0] = layers[0].cpu()
     for i in range(len(embeddings)):
         embeddings[i] = embeddings[i].cpu()
-    torch.cuda.empty_cache()
+    if is_xpu_available():
+        torch.xpu.empty_cache()
+    else:
+        torch.cuda.empty_cache()
 
     outs = torch.zeros_like(inps)
     attention_mask = cache["attention_mask"]
@@ -103,7 +111,10 @@ def llama_eval(model, testenc, dev):
                 )[0]
         layers[i] = layer.cpu()
         del layer
-        torch.cuda.empty_cache()
+        if is_xpu_available:
+            torch.xpu.empty_cache()
+        else:
+            torch.cuda.empty_cache()
         inps, outs = outs, inps
 
     norm = get_norm(model, model_type)
@@ -192,7 +203,10 @@ def benchmark(model, input_ids, check=False):
     layers = get_layers(model, model_type)
 
     input_ids = input_ids.to(model.gpus[0] if hasattr(model, "gpus") else DEV)
-    torch.cuda.synchronize()
+    if is_xpu_availble():
+        torch.xpu.synchronize()
+    else:
+        torch.cuda.synchronize(gpu)
 
     cache = {"past": None}
 
@@ -215,9 +229,16 @@ def benchmark(model, input_ids, check=False):
     def sync():
         if hasattr(model, "gpus"):
             for gpu in model.gpus:
-                torch.cuda.synchronize(gpu)
+                if is_xpu_availble():
+                    torch.xpu.synchronize()
+                else:
+                    torch.cuda.synchronize(gpu)
         else:
-            torch.cuda.synchronize()
+            if is_xpu_availble():
+                torch.xpu.synchronize()
+            else:
+                torch.cuda.synchronize(gpu)
+            
 
     max_memory = 0
     with torch.no_grad():
@@ -233,7 +254,10 @@ def benchmark(model, input_ids, check=False):
             sync()
             times.append(time.time() - tick)
             print(i, times[-1])
-            max_memory = max(max_memory, torch.cuda.memory_allocated() / 1024 / 1024)
+            if is_xpu_available:
+                max_memory = max(max_memory, torch.xpu.memory_allocated() / 1024 / 1024)
+            else:
+                max_memory = max(max_memory, torch.cuda.memory_allocated() / 1024 / 1024)
             if check and i != input_ids.numel() - 1:
                 tot += loss(
                     out.logits[0].to(DEV), input_ids[:, (i + 1)].to(DEV)
@@ -252,7 +276,7 @@ def benchmark(model, input_ids, check=False):
 if __name__ == "__main__":
     import argparse
     from squeezellm.datautils import *
-
+    
     parser = argparse.ArgumentParser()
 
     parser.add_argument("model", type=str, help="llama model to load")
@@ -304,8 +328,10 @@ if __name__ == "__main__":
         default=10,
         help="Number of dense channel used for hybrid kernel.",
     )
-
-    DEV = torch.device("cuda:0")
+    if is_xpu_available:
+        DEV = torch.device("xpu")
+    else:
+        DEV = torch.device("cuda:0")
 
     args = parser.parse_args()
 
@@ -344,7 +370,7 @@ if __name__ == "__main__":
                 with torch.profiler.profile(
                     activities=[
                         torch.profiler.ProfilerActivity.CPU,
-                        torch.profiler.ProfilerActivity.CUDA,
+                        torch.profiler.ProfilerActivity.CUDA
                     ]
                 ) as p:
                     benchmark(model, input_ids, check=args.check)

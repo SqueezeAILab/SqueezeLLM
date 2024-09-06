@@ -2,8 +2,15 @@ import numpy as np
 import torch
 import torch.nn as nn
 import math
-import quant_cuda
+try:
+    import intel_extension_for_pytorch
+    def is_xpu_available():
+        return  torch.xpu.is_available()
+except Exception as e:
+    print(f"Building SYCL kernels requires either Pytorch>=2.4 or installation of IPEX to run on Intel GPUs")
 
+import quant_cuda
+    
 
 def round_to_nearest_pole_sim(w, poles):
     """
@@ -215,7 +222,10 @@ class QuantLinearLUT(nn.Module):
                 y = self.bias.clone()
                 outshape[-1] = self.bias.numel()
             else:
-                y = torch.zeros((self.outfeatures), device="cuda", dtype=torch.float32)
+                if is_xpu_available:
+                    y = torch.zeros((self.outfeatures), device="xpu", dtype=torch.float32)
+                else:
+                    y = torch.zeros((self.outfeatures), device="cuda", dtype=torch.float32)
                 outshape[-1] = self.outfeatures
             dtype = x.dtype
 
@@ -313,9 +323,14 @@ class QuantLinearLUT(nn.Module):
         else:
             out_shape = x.shape[:-1] + (self.outfeatures,)
             x = x.reshape(-1, x.shape[-1])
-            out = torch.zeros(
-                (x.shape[0], self.outfeatures), device="cuda", dtype=torch.float32
-            )
+            if is_xpu_available:
+                out = torch.zeros(
+                    (x.shape[0], self.outfeatures), device="xpu", dtype=torch.float32
+                )
+            else:
+                out = torch.zeros(
+                    (x.shape[0], self.outfeatures), device="cuda", dtype=torch.float32
+                )
             dtype = x.dtype
             if self.bits == 3:
                 x = x.float()
