@@ -259,7 +259,7 @@ void vecquant3matmul_spmv_nuq_perchannel_cuda(
   dim3 threads3(BLOCKWIDTH);
 
   AT_DISPATCH_FLOATING_TYPES(
-    mat.type(), "spmv_atomic", ([&] {
+    mat.scalar_type(), "spmv_atomic", ([&] {
       SPMV_ATOMIC<<<num_blocks, block_size>>>(
         rows.data<int>(),
         cols.data<int>(),
@@ -305,7 +305,7 @@ void vecquant4matmul_spmv_nuq_perchannel_cuda(
   dim3 threads4(BLOCKWIDTH);
 
   AT_DISPATCH_FLOATING_TYPES(
-    mat.type(), "spmv_atomic", ([&] {
+    mat.scalar_type(), "spmv_atomic", ([&] {
       SPMV_ATOMIC<<<num_blocks, block_size>>>(
         rows.data<int>(),
         cols.data<int>(),
@@ -365,7 +365,7 @@ void vecquant3matmul_spmv_nuq_perchannel_batched_cuda(
   int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
 
   AT_DISPATCH_FLOATING_TYPES(
-    mat.type(), "spmv_atomic_batched", ([&] {
+    mat.scalar_type(), "spmv_atomic_batched", ([&] {
       SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
         rows.data<int>(),
         cols.data<int>(),
@@ -419,7 +419,7 @@ void vecquant4matmul_spmv_nuq_perchannel_batched_cuda(
   int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
 
   AT_DISPATCH_FLOATING_TYPES(
-    mat.type(), "spmv_atomic_batched", ([&] {
+    mat.scalar_type(), "spmv_atomic_batched", ([&] {
       SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
         rows.data<int>(),
         cols.data<int>(),
@@ -472,7 +472,7 @@ void vecquant3matmul_spmv_hybrid_nuq_perchannel_cuda(
   int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
 
   AT_DISPATCH_FLOATING_TYPES(
-    mat.type(), "spmv_atomic", ([&] {
+    mat.scalar_type(), "spmv_atomic", ([&] {
       SPMV_ATOMIC<<<num_blocks, block_size>>>(
         rows.data<int>(),
         cols.data<int>(),
@@ -543,7 +543,7 @@ void vecquant4matmul_spmv_hybrid_nuq_perchannel_cuda(
   int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
 
   AT_DISPATCH_FLOATING_TYPES(
-    mat.type(), "spmv_atomic", ([&] {
+    mat.scalar_type(), "spmv_atomic", ([&] {
       SPMV_ATOMIC<<<num_blocks, block_size>>>(
         rows.data<int>(),
         cols.data<int>(),
@@ -616,7 +616,7 @@ void vecquant3matmul_spmv_hybrid_nuq_perchannel_batched_cuda(
   int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
 
   AT_DISPATCH_FLOATING_TYPES(
-    mat.type(), "spmv_atomic_batched", ([&] {
+    mat.scalar_type(), "spmv_atomic_batched", ([&] {
       SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
         rows.data<int>(),
         cols.data<int>(),
@@ -697,7 +697,7 @@ void vecquant4matmul_spmv_hybrid_nuq_perchannel_batched_cuda(
   int num_blocks = (num_rows + BLOCKWIDTH - 1) / BLOCKWIDTH;
 
   AT_DISPATCH_FLOATING_TYPES(
-    mat.type(), "spmv_atomic_batched", ([&] {
+    mat.scalar_type(), "spmv_atomic_batched", ([&] {
       SPMV_ATOMIC_BATCHED<<<num_blocks, block_size>>>(
         rows.data<int>(),
         cols.data<int>(),
